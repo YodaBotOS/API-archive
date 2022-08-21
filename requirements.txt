@@ -1,0 +1,11 @@
+uvicorn
+fastapi
+fastapi-limiter
+boto3
+numpy
+torch
+scikit-learn
+librosa
+pandas
+aiohttp
+python-multipart
