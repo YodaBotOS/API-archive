@@ -9,3 +9,4 @@ librosa
 pandas
 aiohttp
 python-multipart
+gunicorn
