@@ -3,6 +3,7 @@ tmp/
 
 # Config
 config.py
+!core/genre_classification/src/config.py
 
 # Mac stuff
 .DS_Store
