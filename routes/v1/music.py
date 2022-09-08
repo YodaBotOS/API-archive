@@ -10,6 +10,7 @@ import aiohttp
 import fastapi  # type: ignore
 from fastapi import *
 from fastapi.responses import *
+from redis import asyncio as aioredis  # type: ignore
 
 import config
 from core.genre_classification.src.get_genre import main as get_genre
@@ -19,10 +20,10 @@ router = APIRouter(
     prefix="/music",
 )
 
+redis = aioredis.Redis(**config.REDIS, db=1)
+
 s3 = boto3.client("s3", region_name=config.S3_BUCKET_REGION, aws_access_key_id=config.S3_AWS_ACCESS_KEY_ID,
                   aws_secret_access_key=config.S3_AWS_SECRET_ACCESS_KEY)
-
-hash_ids = {}
 
 
 async def get_dolby_io_token(sess):
@@ -105,7 +106,9 @@ async def predict_genre(mode: Literal["fast", "best"] = "fast", file: UploadFile
             async with sess.post(url, json=payload, headers=headers) as resp:
                 data = await resp.json()
 
-                hash_ids[data['job_id']] = hash
+                job_id = data['job_id']
+
+                await redis.set(job_id, hash)
 
                 return data
     else:
@@ -117,9 +120,13 @@ async def predict_genre(mode: Literal["fast", "best"] = "fast", file: UploadFile
 @router.get('/predict-genre/{job_id}')
 async def get_predict_genre(job_id: str):
     try:
-        hash = hash_ids[job_id]
+        hash = await redis.get(job_id)
     except KeyError:
-        return JSONResponse({"error": {"code": 404}, "message": "Job ID not found, or has already expired"},
+        hash = None
+
+    if not hash:
+        return JSONResponse({"error": {"code": 404}, "message": "Job ID not found, or has already expired "
+                                                                "(3 minutes after success/failed/cancelled)."},
                             status_code=404)
 
     async with aiohttp.ClientSession() as sess:
@@ -141,7 +148,13 @@ async def get_predict_genre(job_id: str):
 
             # data status = "running" | "success" | "failed" | "pending" | "cancelled"
 
-            if data["status"] == "Success":
+            status = data["status"]
+
+            if status in ["success", "failed", "cancelled"]:
+                if await redis.ttl(job_id) in [-1, None]:
+                    await redis.expire(job_id, 3 * 60)  # 3 minutes
+
+            if status == "Success":
                 d = {
                     "status": "success",
                     "progress": 100,
