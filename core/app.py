@@ -35,7 +35,7 @@ def add_routes(app: App):
             app.include_router(route, tags=[f"v{name}"], prefix="/v/latest", include_in_schema=False)
             app.include_router(route, prefix="/api")
 
-        app.include_router(route, tags=[f"v{name}"], prefix=f"/v/{name}", deprecated=True,
+        app.include_router(route, tags=[f"v{name}"], prefix=f"/v/{name}",
                            include_in_schema=False)
 
 
