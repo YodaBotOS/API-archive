@@ -10,3 +10,8 @@ pandas
 aiohttp
 python-multipart
 gunicorn
+parsel
+lyricsgenius
+redis>=4.2.0rc1
+hiredis
+git+https://github.com/proguy914629bot/ShazamIO

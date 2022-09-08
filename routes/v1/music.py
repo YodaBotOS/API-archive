@@ -53,78 +53,74 @@ async def root():
 
 
 @router.post("/predict-genre", response_class=JSONResponse)
-async def predict_genre(mode: Literal["fast", "best"] = "fast", job_id: Optional[str] = None,
-                        file: UploadFile = File(None)):
+async def predict_genre(mode: Literal["fast", "best"] = "fast", file: UploadFile = File()):
     """
     Predict the genre of a specific audio file.
     """
 
-    if not file and not job_id:
-        return JSONResponse({"error": {"code": 400}, "message": "Please provide either a file or a job_id."})
+    hash = ''.join(random.choices(string.ascii_letters + string.digits, k=random.randint(10, 50)))
 
-    if file and job_id:
-        return JSONResponse({"error": {"code": 400}, "message": "Please provide either a file or a job_id, not both."})
+    with open(f"tmp/{hash}.mp3", "wb") as f:
+        f.write(await file.read())
 
-    if file:
-        hash = ''.join(random.choices(string.ascii_letters + string.digits, k=random.randint(10, 50)))
+    if mode == "fast":
+        genres = get_genre([f"tmp/{hash}.mp3"])
 
-        with open(f"tmp/{hash}.mp3", "wb") as f:
-            f.write(await file.read())
+        os.remove(f"tmp/{hash}.mp3")
 
-        if mode == "fast":
-            genres = get_genre([f"tmp/{hash}.mp3"])
+        return JSONResponse(genres)
+    elif mode == "best":
+        async with aiohttp.ClientSession() as sess:
+            token = await get_dolby_io_token(sess)
+
+            s3.upload_file(f"tmp/{hash}.mp3", config.S3_BUCKET, f"v1/music/predict-genre/in/{hash}.mp3")
 
             os.remove(f"tmp/{hash}.mp3")
 
-            return JSONResponse(genres)
-        elif mode == "best":
-            async with aiohttp.ClientSession() as sess:
-                token = await get_dolby_io_token(sess)
+            url = "https://api.dolby.com/media/analyze"
 
-                s3.upload_file(f"tmp/{hash}.mp3", config.S3_BUCKET, f"v1/music/predict-genre/in/{hash}.mp3")
-
-                os.remove(f"tmp/{hash}.mp3")
-
-                url = "https://api.dolby.com/media/analyze"
-
-                payload = {
-                    "output": {
-                        "auth": {
-                            "key": config.S3_AWS_ACCESS_KEY_ID,
-                            "secret": config.S3_AWS_SECRET_ACCESS_KEY,
-                        },
-                        "url": f"s3://{config.S3_BUCKET}/v1/music/predict-genre/out/{hash}.json",
+            payload = {
+                "output": {
+                    "auth": {
+                        "key": config.S3_AWS_ACCESS_KEY_ID,
+                        "secret": config.S3_AWS_SECRET_ACCESS_KEY,
                     },
-                    "input": {
-                        "auth": {
-                            "key": config.S3_AWS_ACCESS_KEY_ID,
-                            "secret": config.S3_AWS_SECRET_ACCESS_KEY,
-                        },
-                        "url": f"s3://{config.S3_BUCKET}/v1/music/predict-genre/in/{hash}.mp3",
-                    }
+                    "url": f"s3://{config.S3_BUCKET}/v1/music/predict-genre/out/{hash}.json",
+                },
+                "input": {
+                    "auth": {
+                        "key": config.S3_AWS_ACCESS_KEY_ID,
+                        "secret": config.S3_AWS_SECRET_ACCESS_KEY,
+                    },
+                    "url": f"s3://{config.S3_BUCKET}/v1/music/predict-genre/in/{hash}.mp3",
                 }
+            }
 
-                headers = {
-                    "Accept": "application/json",
-                    "Content-Type": "application/json",
-                    "Authorization": token,
-                }
+            headers = {
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+                "Authorization": token,
+            }
 
-                async with sess.post(url, json=payload, headers=headers) as resp:
-                    data = await resp.json()
+            async with sess.post(url, json=payload, headers=headers) as resp:
+                data = await resp.json()
 
-                    hash_ids[data['job_id']] = hash
+                hash_ids[data['job_id']] = hash
 
-                    return data
-        else:
-            os.remove(f"tmp/{hash}.mp3")
+                return data
+    else:
+        os.remove(f"tmp/{hash}.mp3")
 
-            return PlainTextResponse("Invalid mode")
+        return PlainTextResponse("Invalid mode")
 
 
 @router.get('/predict-genre/{job_id}')
 async def get_predict_genre(job_id: str):
-    hash = hash_ids[job_id]
+    try:
+        hash = hash_ids[job_id]
+    except KeyError:
+        return JSONResponse({"error": {"code": 404}, "message": "Job ID not found, or has already expired"},
+                            status_code=404)
 
     async with aiohttp.ClientSession() as sess:
         token = await get_dolby_io_token(sess)
@@ -148,14 +144,10 @@ async def get_predict_genre(job_id: str):
             if data["status"] == "Success":
                 d = {
                     "status": "success",
+                    "progress": 100,
                 }
 
                 obj = s3.get_object(Bucket=config.S3_BUCKET, Key=f"v1/music/predict-genre/out/{hash}.json")
-
-                try:
-                    hash_ids.pop(job_id)
-                except KeyError:
-                    pass
 
                 obj_body = obj["Body"].read().decode("utf-8")
 
