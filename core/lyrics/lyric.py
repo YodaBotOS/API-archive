@@ -237,10 +237,8 @@ class Lyrics:
     async def get_from_cache(self, query: str):
         x = await self.redis.get(query.lower())
 
-        if not x:
-            return x
-
-        return json.loads(x)
+        if x:
+            return json.loads(x.decode())
 
     async def parse_musixmatch(self, musixmatch):
         lyrics, js, old_js = musixmatch

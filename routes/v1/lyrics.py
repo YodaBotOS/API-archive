@@ -28,10 +28,11 @@ s3 = boto3.client("s3", endpoint_url=config.R2_ENDPOINT_URL, aws_access_key_id=c
 lyric_bucket = 'lyrics-cdn'
 cdn_url = 'lyrics-cdn.api.yodabot.xyz'
 
-try:
-    os.mkdir(f'./lyric-images/')
-except:
-    pass
+for i in ['lyric-images', 'shazam-lyrics']:
+    try:
+        os.mkdir(f'./{i}')
+    except:
+        continue
 
 
 @router.get("/search")
@@ -40,7 +41,7 @@ async def search(q: str):
 
     regex_res = re.findall(r'\(.*\)', q)
     for i in regex_res:
-        query = q.replace(i, '')
+        q = q.replace(i, '')
 
     res = await lyrics.get(q)
 
@@ -90,15 +91,15 @@ async def search(q: str):
 
                 await redis.set(q.lower(), json.dumps(db))
 
-        i = {}
+    i = {}
 
-        for name, endpoint in images.items():
-            i[name] = f'https://{cdn_url}/{endpoint}'
+    for name, endpoint in images.items():
+        i[name] = f'https://{cdn_url}/{endpoint}'
 
-        title = res.title
-        lyric = str(res)
-        artist = res.artist
+    title = res.title
+    lyric = str(res)
+    artist = res.artist
 
-        d = {'title': str(title), 'artist': str(artist), 'lyrics': lyric, 'images': i}
+    d = {'title': str(title), 'artist': str(artist), 'lyrics': lyric, 'images': i}
 
-        return JSONResponse(d)
+    return JSONResponse(d)
