@@ -22,7 +22,8 @@ async def correct(text: str):
     corrected = await grammar_correction(text)
 
     if corrected == "This is incorrect English. Please try again.":
-        corrected = None
+        return JSONResponse({'error': {'code': 400}, 'message': 'This is incorrect English. Please try again.'},
+                            status_code=400)
 
     js = {'original': text, 'corrected': corrected, 'different': text != corrected}
 
