@@ -37,11 +37,14 @@ for i in ['lyric-images', 'shazam-lyrics']:
 
 @router.get("/search")
 async def search(q: str):
-    q = q.strip().replace('+', ' ')
+    q = q.replace('+', ' ').strip()
 
     regex_res = re.findall(r'\(.*\)', q)
     for i in regex_res:
         q = q.replace(i, '')
+
+    if not q:
+        return JSONResponse({'error': {'code': 400}, 'message': 'No query provided.'}, status_code=400)
 
     res = await lyrics.get(q)
 
