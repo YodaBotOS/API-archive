@@ -35,6 +35,11 @@ for i in ['lyric-images', 'shazam-lyrics']:
         continue
 
 
+@router.get("/", include_in_schema=False)
+async def root():
+    return PlainTextResponse("Hello World! Version v1 lyrics")
+
+
 @router.get("/search")
 async def search(q: str):
     q = q.replace('+', ' ').strip()
