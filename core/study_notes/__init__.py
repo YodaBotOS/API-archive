@@ -4,7 +4,7 @@ import openai
 
 class StudyNotes:
     PROMPT = "What are {amount} key points I should know when studying {topic}?\n\n1."
-    REGEX = re.compile(r"'[0-9]+\. ?(.+)+")
+    REGEX = re.compile(r"[0-9]+\. ?(.+)+")
 
     def __init__(self, openai_token):
         self.openai_token = openai_token
@@ -14,7 +14,7 @@ class StudyNotes:
     async def __call__(self, topic, amount):
         return await self.generate(topic, amount)
 
-    async def generate(self, topic, amount) -> list[str]:
+    async def generate(self, topic, amount) -> tuple[list[str], str]:
         prompt = self.PROMPT.format(topic=topic, amount=amount)
 
         response = openai.Completion.create(

@@ -30,6 +30,11 @@ async def generate(topic: str, amount: typing.Optional[int] = 5):
 
     notes, raw = await study_notes(topic, amount)
 
-    js = {'topic': topic, 'amount': amount, 'notes': notes, 'raw': raw}
+    js = {
+        'topic': topic,
+        'amount': amount,
+        'notes': notes,
+        # 'raw': raw
+    }
 
     return JSONResponse(js, status_code=200)
