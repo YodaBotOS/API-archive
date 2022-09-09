@@ -29,4 +29,4 @@ class StudyNotes:
 
         text = "1. " + response["choices"][0]["text"].strip()
 
-        return self.REGEX.findall(text)
+        return self.REGEX.findall(text), text

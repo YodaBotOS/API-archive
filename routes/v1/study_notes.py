@@ -28,8 +28,8 @@ async def generate(topic: str, amount: typing.Optional[int] = 5):
         return JSONResponse({'error': {'code': 400}, 'message': 'Amount must be at least 1 and lest or equal to 10.'},
                             status_code=400)
 
-    notes = await study_notes(topic, amount)
+    notes, raw = await study_notes(topic, amount)
 
-    js = {'topic': topic, 'amount': amount, 'notes': notes}
+    js = {'topic': topic, 'amount': amount, 'notes': notes, 'raw': raw}
 
     return JSONResponse(js, status_code=200)
