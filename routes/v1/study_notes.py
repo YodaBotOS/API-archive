@@ -19,7 +19,7 @@ async def root():
     return PlainTextResponse("Hello World! Version v1 study-notes")
 
 
-@router.post("/generate")
+@router.get("/generate")
 async def generate(topic: str, amount: typing.Optional[int] = 5):
     if not topic:
         return JSONResponse({'error': {'code': 400}, 'message': 'Topic is required.'}, status_code=400)

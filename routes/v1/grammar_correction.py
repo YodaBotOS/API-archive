@@ -17,7 +17,7 @@ async def root():
     return PlainTextResponse("Hello World! Version v1 grammar-correction")
 
 
-@router.post("/correct")
+@router.get("/correct")
 async def correct(text: str):
     corrected = await grammar_correction(text)
 
