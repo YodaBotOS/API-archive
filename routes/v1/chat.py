@@ -74,7 +74,7 @@ async def chat_get_last_response(id: str):
     return JSONResponse({'message': None}, status_code=200)
 
 
-@router.post("/end")
+@router.delete("/end")
 async def chat_end(id: str):
     if not chat.job_id_present(id):
         return JSONResponse({'error': {'code': 404}, 'message': 'Job ID does not exist, stopped or has expired (3 '
