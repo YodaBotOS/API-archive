@@ -18,7 +18,22 @@ AI: I am a bot.
         self.openai_token = openai_token
         self.redis = redis
 
+        self.prompt = self.PROMPT
+
         openai.api_key = openai_token
+
+    @staticmethod
+    def gen_prompt(prompt, next):
+        p = ""
+
+        for who, content in prompt:
+            content = content.replace("\n", " ").strip()
+
+            p += f"{who}: {content}\n{next}: "
+
+        p = p.strip()
+
+        return p
 
     async def get(self, job_id, default=None):
         if not await self.job_id_present(job_id):
@@ -60,6 +75,26 @@ AI: I am a bot.
             'status': 'running',
             'job_id': job_id,
             'messages': [],
+            'custom': False,
+            'custom_prompt': None,
+        }
+
+        await self.set(job_id, js)
+
+        js['status'] = 'started'
+
+        return js
+
+    async def custom_start(self, job_id, prompt):
+        if await self.job_id_present(job_id):
+            raise ValueError("Job ID already exists.")
+
+        js = {
+            'status': 'running',
+            'job_id': job_id,
+            'messages': [],
+            'custom': True,
+            'custom_prompt': prompt,
         }
 
         await self.set(job_id, js)
@@ -94,12 +129,17 @@ AI: I am a bot.
     async def ai_respond(self, job_id, js):
         messages = js['messages']
 
-        prompt = self.PROMPT
+        if js['custom']:
+            prompt = js['custom_prompt']
+        else:
+            prompt = self.prompt
 
-        for who, content in messages:
-            prompt += f"{who}: {content}\nAI: "
+        prompt = prompt or self.PROMPT
+
+        prompt = self.gen_prompt(prompt, "AI: ")
 
         response = openai.Completion.create(
+            prompt=prompt,
             model="text-davinci-002",
             temperature=0.9,
             max_tokens=150,
@@ -110,6 +150,8 @@ AI: I am a bot.
         )
 
         ai_resps = response["choices"][0]["text"].strip()
+
+        ai_resps = ai_resps or "Sorry, I did not understand."
 
         if not ai_resps:
             ai_resps = "Sorry, I did not understand."

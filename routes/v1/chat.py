@@ -35,6 +35,50 @@ async def chat_start(id: typing.Optional[str] = None):
     return JSONResponse(resp, status_code=200)
 
 
+@router.post("/custom-start")
+async def chat_custom_start(request: Request, id: typing.Optional[str] = None):
+    id = str(id or uuid.uuid4())
+
+    if not id.startswith('custom-'):
+        id = 'custom-' + id
+
+    if chat.job_id_present(id):
+        return JSONResponse({'error': {'code': 400}, 'message': 'Job ID already exists.'}, status_code=400)
+
+    try:
+        js = await request.json()
+
+        prompts: list[tuple[str, str]] = js['prompts']
+
+        next_check = "Human"
+
+        for i, (who, content) in enumerate(prompts):
+            content = content.replace('\n', ' ').strip()
+
+            if not content:
+                return JSONResponse({'error': {'code': 400}, 'message': 'Invalid prompts.'}, status_code=400)
+
+            prompts[i] = (who, content)
+
+            if who not in ("AI", "User"):
+                return JSONResponse({'error': {'code': 400}, 'message': 'Invalid prompts.'}, status_code=400)
+
+            if who == next_check:
+                match who:
+                    case "Human":
+                        next_check = "AI"
+                    case "AI":
+                        next_check = "Human"
+            else:
+                return JSONResponse({'error': {'code': 400}, 'message': 'Invalid prompts.'}, status_code=400)
+    except:
+        return JSONResponse({'error': {'code': 400}, 'message': 'Invalid Body/JSON Format.'}, status_code=400)
+
+    resp = await chat.custom_start(id, prompts)
+
+    return JSONResponse(resp, status_code=200)
+
+
 @router.get("/status")
 async def chat_status(id: str):
     if not chat.job_id_present(id):
