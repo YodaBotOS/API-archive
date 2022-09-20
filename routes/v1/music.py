@@ -120,7 +120,7 @@ async def predict_genre(mode: Literal["fast", "best"] = "fast", file: UploadFile
 @router.get('/predict-genre/{job_id}')
 async def get_predict_genre(job_id: str):
     try:
-        hash = await redis.get(job_id)
+        hash = (await redis.get(job_id)).decode()
     except KeyError:
         hash = None
 
