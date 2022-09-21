@@ -144,6 +144,8 @@ async def get_predict_genre(job_id: str):
         }
 
         async with sess.get(url, params=params, headers=headers) as resp:
+            resp.raise_for_status()
+            
             data = await resp.json()
 
             # data status = "running" | "success" | "failed" | "pending" | "cancelled"
