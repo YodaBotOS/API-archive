@@ -5,7 +5,9 @@ from fastapi.openapi.docs import get_swagger_ui_html, get_redoc_html
 from fastapi.openapi.utils import get_openapi
 from fastapi.staticfiles import StaticFiles
 
-from core.app import callback, on_startup, on_shutdown
+from core.app import callback, on_startup, on_shutdown, setup_sentry
+
+setup_sentry()
 
 app = App(
     title="Yoda API",

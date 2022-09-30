@@ -15,4 +15,5 @@ lyricsgenius
 redis>=4.2.0rc1
 hiredis
 openai
+sentry-sdk[fastapi]
 git+https://github.com/proguy914629bot/ShazamIO
