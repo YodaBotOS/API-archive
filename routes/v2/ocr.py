@@ -61,7 +61,7 @@ async def render_image(lang, image):
 
     s3.upload_file(f'tmp/{hash}.png', 'translate-ocr', f'{hash}.png')
 
-    url = f'https://translate-ocr.api.yodabot.xyz/{hash}.png'
+    url = f'https://translate-ocr-cdn.api.yodabot.xyz/{hash}.png'
 
     return JSONResponse({'url': url}, status_code=200)
 
