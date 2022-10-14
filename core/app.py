@@ -6,6 +6,9 @@ from fastapi import FastAPI as App
 from fastapi.responses import Response
 
 import config
+
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = config.GOOGLE_CREDENTIALS_PATH
+
 from routes import v1, v2
 
 
@@ -39,10 +42,6 @@ def make_tmp_dir(app: App):
         os.mkdir("tmp")
     except FileExistsError:
         pass
-
-
-def set_envs(app: App):
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = config.GOOGLE_CREDENTIALS_PATH
 
 
 def add_routes(app: App):
