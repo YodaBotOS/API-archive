@@ -101,6 +101,9 @@ async def render_image(lang, image):
 
     img_bytes = await image.read()
 
+    if not img_bytes:
+        return JSONResponse({'error': {'code': 400}, 'message': 'Image is required.'}, status_code=400)
+
     img = await trocr.run(img_bytes, lang)
 
     hash = ''.join(random.choices(string.ascii_letters + string.digits, k=random.randint(10, 50)))
