@@ -60,7 +60,7 @@ def add_routes(app: App):
 
 
 def callback(app: App):
-    funcs = (add_routes, make_tmp_dir, set_envs,)
+    funcs = (set_envs, add_routes, make_tmp_dir,)
 
     for func in funcs:
         func(app)
