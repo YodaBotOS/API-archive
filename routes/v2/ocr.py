@@ -8,7 +8,7 @@ from fastapi.responses import PlainTextResponse
 
 from core.ocr import OCR
 from core.trocr import TranslateOCR
-from core.app import JSONResponse
+from core.utils import JSONResponse
 
 import config
 

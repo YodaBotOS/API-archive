@@ -13,7 +13,7 @@ from fastapi.responses import PlainTextResponse
 from redis import asyncio as aioredis  # type: ignore
 
 import config
-from core.app import JSONResponse
+from core.utils import JSONResponse
 from core.genre_classification.src.get_genre import main as get_genre
 
 

@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from core.ocr import OCR
 from core.trocr import TranslateOCR
 from core.translate import Translate
-from core.app import JSONResponse
+from core.utils import JSONResponse
 
 import config
 

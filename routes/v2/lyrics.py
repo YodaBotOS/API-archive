@@ -12,7 +12,7 @@ from redis import asyncio as aioredis  # type: ignore
 
 import config
 
-from core.app import JSONResponse
+from core.utils import JSONResponse
 from core.lyrics import Lyrics, Tokens
 
 router = APIRouter(

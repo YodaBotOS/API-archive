@@ -3,7 +3,7 @@ from fastapi import *
 from fastapi.responses import PlainTextResponse
 
 import config
-from core.app import JSONResponse
+from core.utils import JSONResponse
 from core.grammar_correction import GrammarCorrection
 
 router = APIRouter(

@@ -9,19 +9,6 @@ import config
 from routes import v1, v2
 
 
-class JSONResponse(Response):
-    media_type = "application/json"
-
-    def render(self, content) -> bytes:
-        return json.dumps(
-            content,
-            ensure_ascii=False,
-            allow_nan=False,
-            indent=4,
-            separators=(", ", ": "),
-        ).encode("utf-8")
-
-
 def setup_sentry():
     sentry_sdk.init(
         dsn=config.SENTRY_DSN,

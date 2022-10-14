@@ -7,7 +7,7 @@ from fastapi.responses import PlainTextResponse
 from redis import asyncio as aioredis  # type: ignore
 
 from core.chat import Chat
-from core.app import JSONResponse
+from core.utils import JSONResponse
 
 import config
 
