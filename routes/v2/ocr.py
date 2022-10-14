@@ -34,6 +34,9 @@ async def execute(image: UploadFile = File()):
 
     img = await image.read()
 
+    if not img:
+        return JSONResponse({'error': {'code': 400}, 'message': 'Image is required.'}, status_code=400)
+
     text = await ocr(img)
 
     js = {'text': text.strip()}
