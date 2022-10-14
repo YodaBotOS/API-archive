@@ -36,12 +36,14 @@ AI: I am a bot.
         return p
 
     async def get(self, job_id, default=None):
-        if not await self.job_id_present(job_id):
-            return default
+        rjs = await self.redis.get(job_id)
 
-        js = await self.redis.get(job_id)
+        js = json.loads(rjs)
 
-        return json.loads(js)
+        if js and rjs and js['status'] != 'stopped':
+            return js
+
+        return default
 
     async def set(self, job_id, js, *, ex=None):
         if not await self.job_id_present(job_id):
@@ -62,10 +64,9 @@ AI: I am a bot.
     async def job_id_present(self, job_id):
         res = await self.get(job_id)
 
-        if res and res['status'] != 'stopped':
-            return True
+        present = res is not None
 
-        return False
+        return present
 
     async def start(self, job_id):
         if await self.job_id_present(job_id):

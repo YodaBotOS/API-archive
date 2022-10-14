@@ -15,5 +15,8 @@ lyricsgenius
 redis>=4.2.0rc1
 hiredis
 openai
+Pillow
+google-cloud-translate
 sentry-sdk[fastapi]
+thefuzz[speedup]
 git+https://github.com/proguy914629bot/ShazamIO

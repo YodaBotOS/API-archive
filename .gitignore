@@ -5,6 +5,9 @@ tmp/
 config.py
 !core/genre_classification/src/config.py
 
+# GCP Credentials
+credentials.json
+
 # Mac stuff
 .DS_Store
 

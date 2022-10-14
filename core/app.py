@@ -1,10 +1,25 @@
 import os
+import json
 
 import sentry_sdk
 from fastapi import FastAPI as App
+from fastapi.responses import Response
 
 import config
-from routes import v1
+from routes import v1, v2
+
+
+class JSONResponse(Response):
+    media_type = "application/json"
+
+    def render(self, content) -> bytes:
+        return json.dumps(
+            content,
+            ensure_ascii=False,
+            allow_nan=False,
+            indent=4,
+            separators=(", ", ": "),
+        ).encode("utf-8")
 
 
 def setup_sentry():
@@ -39,8 +54,12 @@ def make_tmp_dir(app: App):
         pass
 
 
+def set_envs(app: App):
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = config.GOOGLE_CREDENTIALS_PATH
+
+
 def add_routes(app: App):
-    routes = [("1", v1.router), ]
+    routes = [("1", v1.router), ("2", v2.router),]
 
     latest = app.version.lstrip("latest-")
 
@@ -54,7 +73,7 @@ def add_routes(app: App):
 
 
 def callback(app: App):
-    funcs = (add_routes, make_tmp_dir,)
+    funcs = (add_routes, make_tmp_dir, set_envs,)
 
     for func in funcs:
         func(app)

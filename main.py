@@ -12,7 +12,7 @@ setup_sentry()
 app = App(
     title="Yoda API",
     description="A public API hosted by YodaBotOS. [Open-Sourced at GitHub](https://github.com/YodaBotOS/API)",
-    version="latest-v1",
+    version="latest-v2",
     redoc_url=None,
     docs_url=None,
     openapi_url="/assets/openapi.json",

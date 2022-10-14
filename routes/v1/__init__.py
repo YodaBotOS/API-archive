@@ -10,7 +10,7 @@ from .study_notes import router as study_notes_router
 from .ocr import router as ocr_router
 
 
-router = APIRouter()
+router = APIRouter(deprecated=True)
 routes = [
     ("Music", music_router),
     ("Lyrics", lyrics_router),
