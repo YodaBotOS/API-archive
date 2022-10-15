@@ -53,7 +53,7 @@ async def render_image(lang, image):
     if not img_bytes:
         return JSONResponse({'error': {'code': 400}, 'message': 'Image is required.'}, status_code=400)
 
-    img = await trocr.run(img_bytes, lang)
+    img, original_text, translated_text = await trocr.run(img_bytes, lang)
 
     hash = ''.join(random.choices(string.ascii_letters + string.digits, k=random.randint(10, 50)))
 
@@ -63,7 +63,7 @@ async def render_image(lang, image):
 
     url = f'https://translate-ocr-cdn.api.yodabot.xyz/{hash}.png'
 
-    return JSONResponse({'url': url}, status_code=200)
+    return JSONResponse({'url': url, 'originalText': original_text, 'translatedText': translated_text}, status_code=200)
 
 
 @router.post("/translate/image")

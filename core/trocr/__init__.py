@@ -107,14 +107,22 @@ class TranslateOCR:
         full_text_annotation = data["responses"][0]["fullTextAnnotation"]
         text_annotations = self.optimize_text_annotations(full_text_annotation)
 
+        original_text = ""
+        translated_text = ""
+
         for text_annotation in text_annotations:
             text = text_annotation.text
+
+            original_text += f"{text}\n"
+
             tl, tr, br, bl = text_annotation.bounding_box
 
             if tl.x >= br.x or tl.y >= br.y:
                 raise TranslateOCRError('invalid bounding box')
 
             translated, source, destination = self.translate_func(text, lang)
+
+            translated_text += f"{translated}\n"
 
             crop_field = image.crop((tl.x, tl.y, br.x, br.y))
             blurred = crop_field.filter(ImageFilter.GaussianBlur(15))
@@ -133,7 +141,7 @@ class TranslateOCR:
 
             image.paste(fit_field, (tl.x, tl.y), fit_field)
 
-        return image
+        return image, original_text.strip(), translated_text.strip()
 
     def get_supported_languages(self):
         response = self.translate.get_supported_languages(parent=self.parent)
