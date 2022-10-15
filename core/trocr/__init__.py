@@ -144,9 +144,9 @@ class TranslateOCR:
         return image, original_text.strip(), translated_text.strip()
 
     def get_supported_languages(self):
-        response = self.translate.get_supported_languages(parent=self.parent)
+        response = self.translate.get_supported_languages(parent=self.parent, display_language_code="en")
 
-        return [lang.language_code for lang in response.languages]
+        return [{"languageCode": lang.language_code, "displayName": lang.display_name} for lang in response.languages]
 
     def translate_func(self, text, dest):
         resp = self.translate.translate_text(
