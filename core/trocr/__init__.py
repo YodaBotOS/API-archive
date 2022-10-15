@@ -146,7 +146,7 @@ class TranslateOCR:
     def get_supported_languages(self):
         response = self.translate.get_supported_languages(parent=self.parent, display_language_code="en")
 
-        return [{"languageCode": lang.language_code, "displayName": lang.display_name} for lang in response.languages]
+        return [{"code": lang.language_code, "name": lang.display_name} for lang in response.languages]
 
     def translate_func(self, text, dest):
         resp = self.translate.translate_text(
