@@ -25,9 +25,11 @@ tar -xf $FILE
 ./google-cloud-sdk/install.sh
 
 sudo apt-get install nginx -y
-sudo cp core/setup/nginx.conf /etc/nginx/conf.d/yodaapi.conf
+sudo cp ./core/setup/nginx.conf /etc/nginx/conf.d/yodaapi.conf
 
-sudo cp core/setup/systemd.service /etc/systemd/system/API.service
+chmod +x ./run.bash
+
+sudo cp ./core/setup/systemd.service /etc/systemd/system/API.service
 sudo systemctl daemon-reload
 sudo systemctl enable API
 
