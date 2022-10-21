@@ -1,4 +1,7 @@
 sudo apt update -y && sudo apt upgrade -y
+
+sudo apt-get install build-essential libffi-dev -y
+
 sudo apt install software-properties-common -y
 sudo add-apt-repository ppa:deadsnakes/ppa -y
 sudo apt-get install python3.10 python3.10-venv python3.10-dev -y

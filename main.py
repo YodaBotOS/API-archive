@@ -67,3 +67,8 @@ async def root():
 @app.get("/favicon.ico", include_in_schema=False)
 async def favicon():
     return FileResponse("assets/transparent-favicon.ico")
+
+
+@app.get("/_health_check", include_in_schema=False)
+async def health_check():
+    return PlainTextResponse("OK")
