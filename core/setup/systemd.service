@@ -1,0 +1,14 @@
+[Unit]
+Description=API
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/ubuntu/API
+ExecStart=/home/ubuntu/API/run.bash
+User=ubuntu
+Restart=always
+Environment=PATH=/home/ubuntu/google-cloud-sdk/bin:/home/ubuntu/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+
+[Install]
+WantedBy=multi-user.target
