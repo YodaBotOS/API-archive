@@ -1,6 +1,9 @@
 # [Yoda API](https://api.yodabot.xyz/)
 Welcome to Yoda API. This is the source code for the API.
 
+# Hosting
+Currently, Yoda API is hosted behind Cloudflare using it as a reserve proxy and a CDN with a load balancer hosted on multiple servers on AWS (us-east-1, us-west-1, ap-southeast-1) and GCP (us-east1-b, us-west1-c). 
+
 # LICENSE
 This project is licensed under the MPL-2.0 License. See the [LICENSE](LICENSE) file for more information.
 
