@@ -27,7 +27,7 @@ async def root():
 async def chat_start(id: typing.Optional[str] = None):
     id = str(id or uuid.uuid4())
 
-    if chat.job_id_present(id):
+    if await chat.job_id_present(id):
         return JSONResponse({'error': {'code': 400}, 'message': 'Job ID already exists.'}, status_code=400)
 
     resp = await chat.start(id)
@@ -42,7 +42,7 @@ async def chat_custom_start(request: Request, id: typing.Optional[str] = None):
     if not id.startswith('custom-'):
         id = 'custom-' + id
 
-    if chat.job_id_present(id):
+    if await chat.job_id_present(id):
         return JSONResponse({'error': {'code': 400}, 'message': 'Job ID already exists.'}, status_code=400)
 
     try:
@@ -81,7 +81,7 @@ async def chat_custom_start(request: Request, id: typing.Optional[str] = None):
 
 @router.get("/status")
 async def chat_status(id: str):
-    if not chat.job_id_present(id):
+    if not await chat.job_id_present(id):
         return JSONResponse({'error': {'code': 404}, 'message': 'Job ID does not exist, stopped or has expired (3 '
                                                                 'minutes passed).'}, status_code=404)
 
@@ -94,7 +94,7 @@ async def chat_status(id: str):
 async def chat_send(id: str, message: str):
     message = message.replace('\n', ' ').replace('Human:', '').replace('AI:', '').strip()
 
-    if not chat.job_id_present(id):
+    if not await chat.job_id_present(id):
         return JSONResponse({'error': {'code': 404}, 'message': 'Job ID does not exist, stopped or has expired (3 '
                                                                 'minutes passed).'}, status_code=404)
 
@@ -105,7 +105,7 @@ async def chat_send(id: str, message: str):
 
 @router.get("/get-last-response")
 async def chat_get_last_response(id: str):
-    if not chat.job_id_present(id):
+    if not await chat.job_id_present(id):
         return JSONResponse({'error': {'code': 404}, 'message': 'Job ID does not exist, stopped or has expired (3 '
                                                                 'minutes passed).'}, status_code=404)
 
@@ -120,7 +120,7 @@ async def chat_get_last_response(id: str):
 
 @router.delete("/end")
 async def chat_end(id: str):
-    if not chat.job_id_present(id):
+    if not await chat.job_id_present(id):
         return JSONResponse({'error': {'code': 404}, 'message': 'Job ID does not exist, stopped or has expired (3 '
                                                                 'minutes passed).'}, status_code=404)
 
