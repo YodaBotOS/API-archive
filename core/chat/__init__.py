@@ -38,6 +38,9 @@ AI: I am a bot.
     async def get(self, job_id, default=None):
         rjs = await self.redis.get(job_id)
 
+        if rjs is None:
+            return default
+
         js = json.loads(rjs)
 
         if js and rjs and js['status'] != 'stopped':
