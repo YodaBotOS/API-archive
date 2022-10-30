@@ -5,8 +5,8 @@ import openai
 
 class Chat:
     PROMPT = [
-        ("Human", "Hello, who are you?"),
-        ("AI", "I am a bot."),
+        ("Human", "Hello!"),
+        ("AI", "Hi!"),
         ("Human", "Who are you?"),
         ("AI", "I am a bot."),
     ]
