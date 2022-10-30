@@ -29,8 +29,9 @@ class Chat:
         for who, content in prompt:
             content = content.replace("\n", " ").strip()
 
-            p += f"{who}: {content}\n{next}: "
+            p += f"{who}: {content}\n"
 
+        p += f"{next}: "
         p = p.strip()
 
         return p
