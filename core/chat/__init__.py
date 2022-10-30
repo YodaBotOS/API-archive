@@ -31,7 +31,7 @@ class Chat:
 
             p += f"{who}: {content}\n"
 
-        p += f"{next}: "
+        # p += f"{next}: "
         p = p.strip()
 
         return p
