@@ -4,13 +4,12 @@ import openai
 
 
 class Chat:
-    PROMPT = """
-The following is a conversation with an AI assistant. The assistant is helpful, creative, clever, and very friendly.
-Human: Hello, who are you?
-AI: I am a bot.
-Human: Who are you?
-AI: I am a bot.
-"""
+    PROMPT = [
+        ("Human", "Hello, who are you?"),
+        ("AI", "I am a bot."),
+        ("Human", "Who are you?"),
+        ("AI", "I am a bot."),
+    ]
 
     EXPIRE_AFK = 3 * 60  # 3 minutes expiration
 
@@ -24,7 +23,8 @@ AI: I am a bot.
 
     @staticmethod
     def gen_prompt(prompt, next):
-        p = ""
+        p = "The following is a conversation with an AI assistant. The assistant is helpful, creative, clever, and " \
+            "very friendly."
 
         for who, content in prompt:
             content = content.replace("\n", " ").strip()
@@ -139,6 +139,7 @@ AI: I am a bot.
             prompt = self.prompt
 
         prompt = prompt or self.PROMPT
+        prompt += messages
 
         prompt = self.gen_prompt(prompt, "AI: ")
 
