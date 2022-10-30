@@ -31,3 +31,7 @@ for name, route in routes:
 @router.get("/", include_in_schema=False)
 async def root():
     return PlainTextResponse("Hello World! Version v2")
+
+@router.get("/version", include_in_schema=False)
+async def root():
+    return PlainTextResponse("v2")
