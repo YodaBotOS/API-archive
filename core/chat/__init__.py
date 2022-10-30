@@ -48,8 +48,8 @@ AI: I am a bot.
 
         return default
 
-    async def set(self, job_id, js, *, ex=None):
-        if not await self.job_id_present(job_id):
+    async def set(self, job_id, js, *, ex=None, force=False):
+        if not force and not await self.job_id_present(job_id):
             raise ValueError("Job ID does not exist, stopped or has expired (3 minutes passed).")
 
         ex = ex or self.EXPIRE_AFK
@@ -83,7 +83,7 @@ AI: I am a bot.
             'custom_prompt': None,
         }
 
-        await self.set(job_id, js)
+        await self.set(job_id, js, force=True)
 
         js['status'] = 'started'
 
@@ -101,7 +101,7 @@ AI: I am a bot.
             'custom_prompt': prompt,
         }
 
-        await self.set(job_id, js)
+        await self.set(job_id, js, force=True)
 
         js['status'] = 'started'
 
