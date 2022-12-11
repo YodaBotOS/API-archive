@@ -24,7 +24,7 @@ s3 = boto3.client("s3", endpoint_url=config.R2_ENDPOINT_URL, aws_access_key_id=c
 
 @router.get("/", include_in_schema=False)
 async def root():
-    return PlainTextResponse("Hello World! Version v2 ocr")
+    return PlainTextResponse("Hello World! Version v3 ocr")
 
 
 @router.post("/execute")

@@ -1,3 +1,8 @@
+# Stuff
+main.nginx.conf
+sync-and-restart.py
+sync-clusters.py
+
 # Temporary directories
 tmp/
 

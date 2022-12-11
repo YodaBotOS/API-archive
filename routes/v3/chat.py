@@ -21,7 +21,7 @@ chat = Chat(config.openai_token, db)
 
 @router.get("/", include_in_schema=False)
 async def root():
-    return PlainTextResponse("Hello World! Version v2 chat")
+    return PlainTextResponse("Hello World! Version v3 chat")
 
 
 @router.post("/start")

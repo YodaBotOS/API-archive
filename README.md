@@ -28,3 +28,4 @@ If you find any issues regarding accessing/using the API and others, please repo
 - [latest](https://api.yodabot.xyz/v/latest) or [/api](https://api.yodabot.xyz/api) (this automatically updates to the latest version)
 - [v1](https://api.yodabot.xyz/v/1)
 - [v2](https://api.yodabot.xyz/v/2)
+- [v3](https://api.yodabot.xyz/v/3)

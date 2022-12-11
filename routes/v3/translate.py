@@ -48,7 +48,7 @@ async def startup():
 
 @router.get("/", include_in_schema=False)
 async def root():
-    return PlainTextResponse("Hello World! Version v2 translate")
+    return PlainTextResponse("Hello World! Version v3 translate")
 
 
 @router.get("/languages")

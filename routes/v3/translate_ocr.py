@@ -13,7 +13,7 @@ from core.utils import JSONResponse
 import config
 
 router = APIRouter(
-    prefix="/ocr",
+    prefix="/translate-ocr",
 )
 
 ocr = OCR(config.GCP_TOKEN)
@@ -24,27 +24,11 @@ s3 = boto3.client("s3", endpoint_url=config.R2_ENDPOINT_URL, aws_access_key_id=c
 
 @router.get("/", include_in_schema=False)
 async def root():
-    return PlainTextResponse("Hello World! Version v2 ocr")
+    return PlainTextResponse("Hello World! Version v3 translate-ocr")
 
 
-@router.post("/execute")
-async def execute(image: UploadFile = File()):
-    if not image:
-        return JSONResponse({'error': {'code': 400}, 'message': 'Image is required.'}, status_code=400)
-
-    img = await image.read()
-
-    if not img:
-        return JSONResponse({'error': {'code': 400}, 'message': 'Image is required.'}, status_code=400)
-
-    text = await ocr(img)
-
-    js = {'text': text.strip()}
-
-    return JSONResponse(js, status_code=200)
-
-
-async def render_image(lang, image):
+@router.post("/render")
+async def render(lang: str, image: UploadFile = File()):
     if not image:
         return JSONResponse({'error': {'code': 400}, 'message': 'Image is required.'}, status_code=400)
 
@@ -66,20 +50,10 @@ async def render_image(lang, image):
     return JSONResponse({'url': url, 'originalText': original_text, 'translatedText': translated_text}, status_code=200)
 
 
-@router.post("/translate/image")
-async def translate_image(lang: str, image: UploadFile = File()):
-    return await render_image(lang, image)
-
-
-@router.post("/translate/image/render")
-async def translate_image_render(lang: str, image: UploadFile = File()):
-    return await render_image(lang, image)
-
-
-@router.get("/translate/image/languages")
-async def translate_image_languages():
+@router.get("/languages")
+async def languages():
     langs = trocr.get_supported_languages()
 
-    d = {"supportedLanguages": langs}
+    res = {"supportedLanguages": langs}
 
-    return JSONResponse(d, status_code=200)
+    return JSONResponse(res, status_code=200)

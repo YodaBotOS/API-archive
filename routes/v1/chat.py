@@ -4,18 +4,17 @@ import typing
 import fastapi  # type: ignore
 from fastapi import *
 from fastapi.responses import *
-from redis import asyncio as aioredis  # type: ignore
-
-from core.chat import Chat
 
 import config
+from core.db import init_db
+from core.chat import Chat
 
 router = APIRouter(
     prefix="/chat",
 )
 
-redis = aioredis.Redis(**config.REDIS, db=2)
-chat = Chat(config.openai_token, redis)
+db = init_db()
+chat = Chat(config.openai_token, db)
 
 
 @router.get("/", include_in_schema=False)

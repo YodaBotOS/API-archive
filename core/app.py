@@ -1,5 +1,6 @@
 import os
 import json
+import asyncio
 
 import sentry_sdk
 from fastapi import FastAPI as App
@@ -9,6 +10,7 @@ import config
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = config.GOOGLE_CREDENTIALS_PATH
 
+from .db import init_db
 from routes import v1, v2
 
 
@@ -25,7 +27,13 @@ def setup_sentry():
 
 def on_startup(app: App):
     async def _():
-        pass
+        db = await init_db(sync=False)
+
+        with open('schema.sql', 'r') as f:
+            query = f.read()
+
+        async with db.acquire() as conn:
+            await conn.execute(query)
 
     return _
 

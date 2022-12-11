@@ -25,8 +25,7 @@ lyrics = Lyrics(redis, tokens)
 
 s3 = boto3.client("s3", endpoint_url=config.R2_ENDPOINT_URL, aws_access_key_id=config.R2_ACCESS_KEY_ID,
                   aws_secret_access_key=config.R2_SECRET_ACCESS_KEY)
-lyric_bucket = 'lyrics-cdn'
-cdn_url = 'lyrics-cdn.api.yodabot.xyz'
+cdn_url = f'{config.R2_HOST}/lyrics'
 
 for i in ['lyric-images', 'shazam-lyrics']:
     try:
@@ -56,12 +55,15 @@ async def search(q: str):
     if not res:
         return JSONResponse({'title': None, 'artist': None, 'lyrics': None, 'images': {}}, status_code=404)
 
-    if not os.path.exists(f'./lyric-images/{res.title}-{res.artist}'):
-        os.mkdir(f'./lyric-images/{res.title}-{res.artist}')
+    res_title = res.title.replace(" ", "_")
+    res_artist = res.artist.replace(" ", "_")
 
     if res._images_from_redis and res.images:
         images = res.images
     else:
+        if not os.path.exists(f'./lyric-images/{res_title}-{res_artist}'):
+            os.mkdir(f'./lyric-images/{res_title}-{res_artist}')
+
         db = json.loads(await redis.get(q.lower()))
 
         if db.get('images'):
@@ -74,23 +76,23 @@ async def search(q: str):
                     async with sess.get(url) as resp:
                         image_content = await resp.read()
 
-                with open(f'./lyric-images/{res.title}-{res.artist}/{image_name}.jpg', 'wb') as f:
+                with open(f'./lyric-images/{res_title}-{res_artist}/{image_name}.jpg', 'wb') as f:
                     f.write(image_content)
 
                 s3.upload_file(
-                    f'./lyric-images/{res.title}-{res.artist}/{image_name}.jpg',
-                    lyric_bucket,
-                    f'lyrics/{res.title}-{res.artist}/{image_name}.jpg'
+                    f'./lyric-images/{res_title}-{res_artist}/{image_name}.jpg',
+                    config.R2_BUCKET,
+                    f'lyrics/{res_title}-{res_artist}/{image_name}.jpg'
                 )
 
-                x = safe_text_url(res.title + '-' + res.artist)
+                x = safe_text_url(res_title + '-' + res_artist)
 
-                images[image_name] = f'lyrics/{x}/{image_name}.jpg'
+                images[image_name] = f'{x}/{image_name}.jpg'
 
-                os.remove(f'./lyric-images/{res.title}-{res.artist}/{image_name}.jpg')
+                os.remove(f'./lyric-images/{res_title}-{res_artist}/{image_name}.jpg')
 
             try:
-                os.remove(f'./lyric-images/{res.title}-{res.artist}')
+                os.remove(f'./lyric-images/{res_title}-{res_artist}')
             except:
                 pass
 

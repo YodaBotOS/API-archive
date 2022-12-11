@@ -1,3 +1,4 @@
+import datetime
 import json
 
 import openai
@@ -13,9 +14,9 @@ class Chat:
 
     EXPIRE_AFK = 3 * 60  # 3 minutes expiration
 
-    def __init__(self, openai_token, redis):
+    def __init__(self, openai_token, db):
         self.openai_token = openai_token
-        self.redis = redis
+        self.db = db
 
         self.prompt = self.PROMPT
 
@@ -31,20 +32,23 @@ class Chat:
 
             p += f"{who}: {content}\n"
 
-        # p += f"{next}: "
+        p += f"{next}: "
         p = p.strip()
 
         return p
 
     async def get(self, job_id, default=None):
-        rjs = await self.redis.get(job_id)
+        async with self.db.acquire() as conn:
+            js = await conn.fetch("SELECT * FROM chat WHERE job_id = $1", job_id)
 
-        if rjs is None:
+        if not js:
             return default
 
-        js = json.loads(rjs)
+        if js['expire'] < datetime.datetime.utcnow():
+            await self.delete(job_id)
+            return default
 
-        if js and rjs and js['status'] != 'stopped':
+        if js and js['status'] != 'stopped':
             return js
 
         return default
@@ -55,7 +59,19 @@ class Chat:
 
         ex = ex or self.EXPIRE_AFK
 
-        await self.redis.set(job_id, json.dumps(js), ex=ex, keepttl=False)
+        item = await self.get(job_id)
+
+        js['expire'] = datetime.datetime.utcnow() + datetime.timedelta(seconds=ex)
+
+        # I hate doing it like this, but who cares tbh. idc.
+        async with self.db.acquire() as conn:
+            if not item:
+                keys = ', '.join(js.keys())
+                values = ', '.join([f'${i + 1}' for i in range(len(js))])
+                await conn.execute(f"INSERT INTO chat({keys}) VALUES ({values})", *js.values())
+            else:
+                keys = ', '.join([f'{k} = ${i}' for i, k in enumerate(js.keys(), start=2)])
+                await conn.execute(f"UPDATE chat SET {keys} WHERE job_id = $1", job_id, *js.values())
 
         return js
 
@@ -63,7 +79,8 @@ class Chat:
         if not await self.job_id_present(job_id):
             raise ValueError("Job ID does not exist, stopped or has expired (3 minutes passed).")
 
-        await self.redis.delete(job_id)
+        async with self.db.acquire() as conn:
+            await conn.execute("DELETE FROM chat WHERE job_id = $1", job_id)
 
     async def job_id_present(self, job_id):
         res = await self.get(job_id)
@@ -146,7 +163,7 @@ class Chat:
 
         response = openai.Completion.create(
             prompt=prompt,
-            model="text-davinci-002",
+            model="text-davinci-003",
             temperature=0.9,
             max_tokens=150,
             top_p=1,
