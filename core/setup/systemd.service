@@ -5,7 +5,7 @@ After=network-online.target
 [Service]
 Type=simple
 WorkingDirectory=/home/ubuntu/API
-ExecStart=/usr/local/bin/run-yoda-api.bash
+ExecStart=/home/ubuntu/API/venv/bin/gunicorn main:app -k uvicorn.workers.UvicornWorker --workers 4
 User=ubuntu
 Restart=always
 Environment=PATH=/home/ubuntu/google-cloud-sdk/bin:/home/ubuntu/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
