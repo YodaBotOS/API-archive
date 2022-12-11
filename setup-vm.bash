@@ -31,9 +31,6 @@ export PATH=$PATH:$HOME/API/google-cloud-sdk/bin
 sudo apt-get install nginx -y
 sudo ln -s ./core/setup/nginx.conf /etc/nginx/conf.d/yodaapi.conf
 
-sudo cp run.bash /usr/local/bin/run-yoda-api.bash
-sudo chmod +x /usr/local/bin/run-yoda-api.bash
-
 sudo cp ./core/setup/systemd.service /etc/systemd/system/API.service
 sudo systemctl daemon-reload
 sudo systemctl enable API
