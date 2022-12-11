@@ -26,13 +26,15 @@ fi
 curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/$FILE
 tar -xf $FILE
 ./google-cloud-sdk/install.sh -q
+export PATH=$PATH:$HOME/API/google-cloud-sdk/bin
 
 sudo apt-get install nginx -y
-sudo cp ./core/setup/nginx.conf /etc/nginx/conf.d/yodaapi.conf
+sudo ln -s ./core/setup/nginx.conf /etc/nginx/conf.d/yodaapi.conf
 
-chmod +x ./run.bash
+sudo ln -s run.bash /usr/local/bin/run-yoda-api.bash
+sudo chmod +x /usr/local/bin/run-yoda-api.bash
 
-sudo cp ./core/setup/systemd.service /etc/systemd/system/API.service
+sudo ln -s ./core/setup/systemd.service /etc/systemd/system/API.service
 sudo systemctl daemon-reload
 sudo systemctl enable API
 
