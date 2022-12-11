@@ -12,7 +12,7 @@ from .style import *
 
 
 class GenerateArt:
-    def __init__(self, s3, keys: tuple[str]):
+    def __init__(self, s3, keys: tuple):
         self.openai_key = keys[0]
         openai.api_key = keys[0]
         self.dream_key = keys[1]
