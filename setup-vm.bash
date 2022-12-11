@@ -11,7 +11,7 @@ python3.10 -m pip install -U pip setuptools wheel
 
 python3.10 -m venv venv
 ./venv/bin/pip install -U pip setuptools wheel
-./venv/bin/pip install -U -r requirements.txt
+./venv/bin/pip install -U -r requirements.txt --no-cache-dir
 
 sudo apt-get install libsndfile1 ffmpeg sox -y
 
