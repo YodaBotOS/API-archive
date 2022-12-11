@@ -36,4 +36,6 @@ sudo cp ./core/setup/systemd.service /etc/systemd/system/API.service
 sudo systemctl daemon-reload
 sudo systemctl enable API
 
+sudo systemctl start API
+
 source ~/.bashrc
