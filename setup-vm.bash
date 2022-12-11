@@ -25,7 +25,7 @@ else
 fi
 curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/$FILE
 tar -xf $FILE
-./google-cloud-sdk/install.sh
+./google-cloud-sdk/install.sh -q
 
 sudo apt-get install nginx -y
 sudo cp ./core/setup/nginx.conf /etc/nginx/conf.d/yodaapi.conf

@@ -2,6 +2,8 @@
 main.nginx.conf
 sync-and-restart.py
 sync-clusters.py
+setup.py
+vms.json
 
 # Temporary directories
 tmp/
