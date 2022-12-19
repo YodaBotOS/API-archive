@@ -30,3 +30,7 @@ async def execute(image: UploadFile = File()):
     js = {'text': text.strip()}
 
     return JSONResponse(js, status_code=200)
+
+
+def init_router(app):
+    return router

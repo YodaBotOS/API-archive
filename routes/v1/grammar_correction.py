@@ -28,3 +28,7 @@ async def correct(text: str):
     js = {'original': text, 'corrected': corrected, 'different': text != corrected}
 
     return JSONResponse(js, status_code=200)
+
+
+def init_router(app):
+    return router

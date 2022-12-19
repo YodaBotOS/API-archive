@@ -139,3 +139,7 @@ async def translate_image_languages():
     d = {"supportedLanguages": langs}
 
     return JSONResponse(d, status_code=200)
+
+
+def init_router(app):
+    return router

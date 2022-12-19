@@ -57,3 +57,7 @@ async def languages():
     res = {"supportedLanguages": langs}
 
     return JSONResponse(res, status_code=200)
+
+
+def init_router(app):
+    return router

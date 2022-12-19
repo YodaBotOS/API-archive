@@ -234,3 +234,7 @@ async def analyze_image(file: UploadFile = File()):
     data = await art.analyze(image_file)
 
     return JSONResponse(data, status_code=200)
+
+
+def init_router(app):
+    return router

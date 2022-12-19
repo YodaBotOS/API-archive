@@ -38,3 +38,7 @@ async def generate(topic: str, amount: typing.Optional[int] = 5):
     }
 
     return JSONResponse(js, status_code=200)
+
+
+def init_router(app):
+    return router

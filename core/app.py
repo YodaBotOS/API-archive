@@ -55,16 +55,18 @@ def make_tmp_dir(app: App):
 
 
 def add_routes(app: App):
-    routes = [("1", v1.router), ("2", v2.router), ("3", v3.router)]
+    routes = [("1", v1.init_router), ("2", v2.init_router), ("3", v3.init_router)]
 
     latest = app.version.lstrip("latest-")
 
     for name, route in routes:
-        if "v" + name == latest:
-            app.include_router(route, tags=[f"v{name}"], prefix="/v/latest", include_in_schema=False)
-            app.include_router(route, prefix="/api")
+        r = route(app)
 
-        app.include_router(route, tags=[f"v{name}"], prefix=f"/v/{name}",
+        if "v" + name == latest:
+            app.include_router(r, tags=[f"v{name}"], prefix="/v/latest", include_in_schema=False)
+            app.include_router(r, prefix="/api")
+
+        app.include_router(r, tags=[f"v{name}"], prefix=f"/v/{name}",
                            include_in_schema=False)
 
 
