@@ -39,3 +39,5 @@ async def root():
 def init_router(app):
     for name, route in routes:
         router.include_router(route(app), tags=[name])
+
+    return router
