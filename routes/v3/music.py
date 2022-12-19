@@ -16,12 +16,11 @@ import config
 from core.utils import JSONResponse
 from core.genre_classification.src.get_genre import main as get_genre
 
-
 router = APIRouter(
     prefix="/music",
 )
 
-redis = aioredis.Redis(**config.REDIS, db=1)
+db = None
 
 s3 = boto3.client("s3", region_name=config.S3_BUCKET_REGION, aws_access_key_id=config.S3_AWS_ACCESS_KEY_ID,
                   aws_secret_access_key=config.S3_AWS_SECRET_ACCESS_KEY)
@@ -109,7 +108,8 @@ async def predict_genre(mode: Literal["fast", "best"] = "fast", file: UploadFile
 
                 job_id = data['job_id']
 
-                await redis.set(job_id, hash)
+                async with db.acquire() as conn:
+                    await conn.execute("INSERT INTO predict_genre (job_id, hash) VALUES ($1, $2)", job_id, hash)
 
                 return data
     else:
@@ -120,12 +120,10 @@ async def predict_genre(mode: Literal["fast", "best"] = "fast", file: UploadFile
 
 @router.get('/predict-genre/{job_id}')
 async def get_predict_genre(job_id: str):
-    try:
-        hash = (await redis.get(job_id)).decode()
-    except KeyError:
-        hash = None
+    async with db.acquire() as conn:
+        d = await conn.fetchval("SELECT * FROM predict_genre WHERE job_id = $1", job_id)
 
-    if not hash:
+    if not d['hash'] or datetime.datetime.utcnow() > d['expires']:
         return JSONResponse({"error": {"code": 404}, "message": "Job ID not found, or has already expired "
                                                                 "(3 minutes after success/failed/cancelled)."},
                             status_code=404)
@@ -146,7 +144,7 @@ async def get_predict_genre(job_id: str):
 
         async with sess.get(url, params=params, headers=headers) as resp:
             resp.raise_for_status()
-            
+
             data = await resp.json()
 
             # data status = "running" | "success" | "failed" | "pending" | "cancelled"
@@ -154,8 +152,10 @@ async def get_predict_genre(job_id: str):
             status = data["status"]
 
             if status in ["success", "failed", "cancelled"]:
-                if await redis.ttl(job_id) in [-1, None]:
-                    await redis.expire(job_id, 3 * 60)  # 3 minutes
+                expire = datetime.datetime.utcnow() + datetime.timedelta(minutes=3)
+
+                async with db.acquire() as conn:
+                    await conn.execute("UPDATE predict_genre SET expire = $2 WHERE job_id = $1", expire, job_id)
 
             if status == "Success":
                 d = {
@@ -189,3 +189,9 @@ async def get_predict_genre(job_id: str):
                     d["progress"] = prog
 
                 return JSONResponse(d)
+
+
+def init_router(app):
+    global db
+    db = app.db
+    return router

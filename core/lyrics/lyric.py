@@ -1,4 +1,4 @@
-import typing, re, asyncio, os, aiohttp, json, parsel, random, string
+import typing, re, asyncio, os, aiohttp, json, parsel, random, string, asyncpg
 from lyricsgenius import Genius
 from .dataclass import Lyric
 from .baseclass import Tokens
@@ -19,7 +19,7 @@ class Lyrics:
         The Token class, this is used to authenticate to APIs.
     """
 
-    def __init__(self, redis, tokens: typing.Optional[Tokens] = None, *, loop=None):
+    def __init__(self, tokens: typing.Optional[Tokens] = None, psql=None, redis=None, *, loop=None):
         self.loop = loop or asyncio.get_event_loop()
 
         self.tokens = tokens
@@ -44,6 +44,7 @@ class Lyrics:
         self.cache = {}
 
         self.redis = redis
+        self.psql: asyncpg.Pool = psql
 
     async def log(self, msg, *, quiet=True):
         print(msg)
@@ -219,7 +220,7 @@ class Lyrics:
                 lyrics = '\n'.join(lyrics[0][1][1])
 
             return lyrics, _js, js
-        except:
+        except Exception as e:
             return None
 
     @property
@@ -234,11 +235,49 @@ class Lyrics:
     def _get_async_scrapping_musixmatch(self):
         return self._get_musixmatch
 
-    async def get_from_cache(self, query: str):
-        x = await self.redis.get(query.lower())
+    def parse_psql_data(self, data, *, reverse=False, ready=False):
+        d = data.copy()
 
-        if x:
-            return json.loads(x.decode())
+        if reverse:
+            d['images']['background'] = data['images'].get('background') or ''
+            d['images']['track'] = data['images'].get('track') or ''
+        else:
+            d['images'] = {}
+
+            d['images']['track'] = data['track_img']
+            d['images']['background'] = data['bg_img']
+
+            del d['track_img']
+            del d['bg_img']
+
+        if ready:
+            try:
+                del d['raw_dict']
+            except:
+                pass
+
+            try:
+                del d['q']
+            except:
+                pass
+
+        return d
+
+    async def get_from_cache(self, query: str) -> dict:
+        # if self.redis is None:
+        #     return None
+        #
+        # x = await self.redis.get(query.lower())
+        #
+        # if x:
+        #     return json.loads(x.decode())
+
+        async with self.psql.acquire() as conn:
+            d = await conn.fetchrow('SELECT * FROM lyrics WHERE q = $1', query.lower())
+            d = dict(d)
+            d = self.parse_psql_data(d)
+
+        return d
 
     async def parse_musixmatch(self, musixmatch):
         lyrics, js, old_js = musixmatch
@@ -290,8 +329,8 @@ class Lyrics:
         if cac:
             if cache:
                 await self.log('Query %s exists in cache. Returning cache instead.' % query)
-                cac['images'] = cac.get('images', {})
-                return Lyric(**cac, images_from_redis=bool(cac.get('images')))
+                cac['images'] = cac.get('images') or {}
+                return Lyric(**cac, images_saved_before=bool(cac.get('images')))
             else:
                 await self.log('Query %s exists in cache, but forced to not use cache result.' % cache)
 
@@ -300,7 +339,7 @@ class Lyrics:
 
         try:
             musixmatch = await self._get_async_musixmatch(query)
-        except:
+        except Exception as e:
             musixmatch = None
 
         if musixmatch:
@@ -318,7 +357,7 @@ class Lyrics:
 
                     await self.log(
                         "Genius works with query %s. Using genius with result:\n- Title: %s\n- Artist: %s" % (
-                        query, title, artist))
+                            query, title, artist))
                 else:
                     genius = None
                     img = None
@@ -345,7 +384,7 @@ class Lyrics:
 
                         await self.log(
                             "Google works with query %s. Using Google with result:\n- Title: %s\n- Artist: %s" % (
-                            query, title, artist))
+                                query, title, artist))
                     else:
                         try:
                             mx = await self._get_async_scrapping_musixmatch(query)  # type: ignore
@@ -355,7 +394,7 @@ class Lyrics:
 
                                 await self.log(
                                     "*Sync* Musixmatch works with query %s. Using *sync* musixmatch with result:\n- Title: %s\n- Artist: %s" % (
-                                    query, title, artist))
+                                        query, title, artist))
                             else:
                                 await self.log("Nothing found with query %s." % query)
                                 return None
@@ -374,7 +413,8 @@ class Lyrics:
 
         str_data = json.dumps({'title': title, 'artist': artist, 'lyrics': lyrics, 'raw_dict': js})
 
-        await self.redis.set(query.lower(), str_data)
+        if self.redis is not None:
+            await self.redis.set(query.lower(), str_data)
 
         await self.log("Adding/Updating query %s to cache." % query)
 
@@ -384,3 +424,23 @@ class Lyrics:
         for d in track['sections']:
             if d['type'] == 'ARTIST':
                 return d
+
+    async def set_json_codec(self, conn):
+        if getattr(self.set_json_codec, 'done', False):
+            return
+
+        await conn.set_type_codec('json', encoder=json.dumps, decoder=json.loads, schema='pg_catalog')
+
+        self.set_json_codec.done = True
+
+    async def save(self, data):
+        self.parse_psql_data(data, reverse=True)
+
+        async with self.psql.acquire() as conn:
+            await self.set_json_codec(conn)
+
+            await conn.execute(
+                'INSERT INTO lyrics (q, title, artist, lyrics, track_img, bg_img, raw_dict) VALUES ($1, $2, $3, $4, $5, $6, $7::json)',
+                data['q'].lower(), data['title'], data['artist'], data['lyrics'], data['images']['track'],
+                data['images']['background'], data['raw_dict']
+            )

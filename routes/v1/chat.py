@@ -6,14 +6,13 @@ from fastapi import *
 from fastapi.responses import *
 
 import config
-from core.db import init_db
 from core.chat import Chat
 
 router = APIRouter(
     prefix="/chat",
 )
 
-db = init_db()
+db = None
 chat = Chat(config.openai_token, db)
 
 
@@ -126,3 +125,10 @@ async def chat_end(id: str):
     resp = await chat.stop(id)
 
     return JSONResponse(resp, status_code=200)
+
+
+def init_router(app):
+    global db
+    db = app.db
+    chat.db = db
+    return router

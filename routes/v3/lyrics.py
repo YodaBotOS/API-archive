@@ -7,22 +7,21 @@ import boto3
 import aiohttp
 import fastapi  # type: ignore
 from fastapi import *
-from fastapi.responses import PlainTextResponse
-from redis import asyncio as aioredis  # type: ignore
+from fastapi.responses import *
 
 import config
 
-from core.utils import JSONResponse
 from core.lyrics import Lyrics, Tokens
+from core.utils import JSONResponse
 
 router = APIRouter(
     prefix="/lyrics",
 )
 
-redis = aioredis.Redis(**config.REDIS)
-
+db = None
 tokens = Tokens(**config.LYRIC_TOKENS)
-lyrics = Lyrics(redis, tokens)
+lyrics = Lyrics(tokens)
+
 
 s3 = boto3.client("s3", endpoint_url=config.R2_ENDPOINT_URL, aws_access_key_id=config.R2_ACCESS_KEY_ID,
                   aws_secret_access_key=config.R2_SECRET_ACCESS_KEY)
@@ -59,48 +58,38 @@ async def search(q: str):
     res_title = res.title.replace(" ", "_")
     res_artist = res.artist.replace(" ", "_")
 
-    if res._images_from_redis and res.images:
+    if res._images_saved_before and res.images:
         images = res.images
     else:
         if not os.path.exists(f'./lyric-images/{res_title}-{res_artist}'):
             os.mkdir(f'./lyric-images/{res_title}-{res_artist}')
 
-        db = json.loads(await redis.get(q.lower()))
+        images = {}
 
-        if db.get('images'):
-            images = db['images']
-        else:
-            images = {}
+        for image_name, url in res.images.items():
+            async with aiohttp.ClientSession() as sess:
+                async with sess.get(url) as resp:
+                    image_content = await resp.read()
 
-            for image_name, url in res.images.items():
-                async with aiohttp.ClientSession() as sess:
-                    async with sess.get(url) as resp:
-                        image_content = await resp.read()
+            with open(f'./lyric-images/{res_title}-{res_artist}/{image_name}.jpg', 'wb') as f:
+                f.write(image_content)
 
-                with open(f'./lyric-images/{res_title}-{res_artist}/{image_name}.jpg', 'wb') as f:
-                    f.write(image_content)
+            s3.upload_file(
+                f'./lyric-images/{res_title}-{res_artist}/{image_name}.jpg',
+                config.R2_BUCKET,
+                f'lyrics/{res_title}-{res_artist}/{image_name}.jpg'
+            )
 
-                s3.upload_file(
-                    f'./lyric-images/{res_title}-{res_artist}/{image_name}.jpg',
-                    config.R2_BUCKET,
-                    f'lyrics/{res_title}-{res_artist}/{image_name}.jpg'
-                )
+            x = safe_text_url(res_title + '-' + res_artist)
 
-                x = safe_text_url(res_title + '-' + res_artist)
+            images[image_name] = f'{x}/{image_name}.jpg'
 
-                images[image_name] = f'{x}/{image_name}.jpg'
+            os.remove(f'./lyric-images/{res_title}-{res_artist}/{image_name}.jpg')
 
-                os.remove(f'./lyric-images/{res_title}-{res_artist}/{image_name}.jpg')
-
-            try:
-                os.remove(f'./lyric-images/{res_title}-{res_artist}')
-            except:
-                pass
-
-            if images:
-                db['images'] = images
-
-                await redis.set(q.lower(), json.dumps(db))
+        try:
+            os.remove(f'./lyric-images/{res_title}-{res_artist}')
+        except:
+            pass
 
     i = {}
 
@@ -112,5 +101,17 @@ async def search(q: str):
     artist = res.artist
 
     d = {'title': str(title), 'artist': str(artist), 'lyrics': lyric, 'images': i}
+    db_d = d.copy()
+    db_d['raw_dict'] = res.raw_dict
+    db_d['q'] = q
+
+    await lyrics.save(db_d)
 
     return JSONResponse(d)
+
+
+def init_router(app):
+    global db
+    db = app.db
+    lyrics.psql = db
+    return router

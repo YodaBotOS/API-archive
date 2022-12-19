@@ -27,13 +27,15 @@ def setup_sentry():
 
 def on_startup(app: App):
     async def _():
-        db = await init_db(sync=False)
+        # db = await init_db(sync=False)
+        #
+        # with open('schema.sql', 'r') as f:
+        #     query = f.read()
+        #
+        # async with db.acquire() as conn:
+        #     await conn.execute(query)
 
-        with open('schema.sql', 'r') as f:
-            query = f.read()
-
-        async with db.acquire() as conn:
-            await conn.execute(query)
+        pass
 
     return _
 
@@ -66,8 +68,12 @@ def add_routes(app: App):
                            include_in_schema=False)
 
 
+def init_database(app: App):
+    app.db = init_db(sync=True)
+
+
 def callback(app: App):
-    funcs = (add_routes, make_tmp_dir,)
+    funcs = (init_database, add_routes, make_tmp_dir)
 
     for func in funcs:
         func(app)

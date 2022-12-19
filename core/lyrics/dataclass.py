@@ -1,23 +1,19 @@
 class Lyric:
-    def __init__(self, title, artist, lyrics, raw_dict, images, images_from_redis):
-        self.lyrics = lyrics
-        self.lyric = lyrics
-        self.raw = raw_dict
-        self.raw_dict = raw_dict
-        self.dict = raw_dict
+    def __init__(self, title, artist, lyrics, raw_dict, images, images_saved_before):
+        self.lyrics = self.lyric = lyrics
+        self.raw = self.raw_dict = self.dict = raw_dict
         self.title = title
-        self.artist = artist
-        self.by = artist
-        self._images_from_redis = images_from_redis
+        self.artist = self.by = artist
+        self._images_saved_before = images_saved_before
         self.images = images or {}
 
-        if not images_from_redis or not images:
+        if not images_saved_before or not images:
             try:
                 if 'track' in raw_dict:
                     if 'images' in raw_dict['track']:
                         if raw_dict['track']['images'].get('background'):
                             self.images['background'] = raw_dict['track']['images']['background']
-                        
+
                         if raw_dict['track']['images'].get('coverart'):
                             self.images['track'] = raw_dict['track']['images']['coverart']
                         elif raw_dict['track']['images'].get('coverarthq'):
