@@ -42,7 +42,7 @@ def on_startup(app: App):
 
 def on_shutdown(app: App):
     async def _():
-        pass
+        await app.db.close()
 
     return _
 
