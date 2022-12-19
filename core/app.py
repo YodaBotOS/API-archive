@@ -11,7 +11,7 @@ import config
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = config.GOOGLE_CREDENTIALS_PATH
 
 from .db import init_db
-from routes import v1, v2
+from routes import v1, v2, v3
 
 
 def setup_sentry():
@@ -55,7 +55,7 @@ def make_tmp_dir(app: App):
 
 
 def add_routes(app: App):
-    routes = [("1", v1.router), ("2", v2.router),]
+    routes = [("1", v1.router), ("2", v2.router), ("3", v3.router)]
 
     latest = app.version.lstrip("latest-")
 
