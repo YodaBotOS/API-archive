@@ -121,7 +121,7 @@ async def predict_genre(mode: Literal["fast", "best"] = "fast", file: UploadFile
 @router.get('/predict-genre/{job_id}')
 async def get_predict_genre(job_id: str):
     async with db.acquire() as conn:
-        d = await conn.fetchval("SELECT * FROM predict_genre WHERE job_id = $1", job_id)
+        d = await conn.fetchrow("SELECT * FROM predict_genre WHERE job_id = $1", job_id)
 
     if not d['hash'] or datetime.datetime.utcnow() > d['expires']:
         return JSONResponse({"error": {"code": 404}, "message": "Job ID not found, or has already expired "
