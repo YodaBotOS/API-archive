@@ -8,7 +8,6 @@ from fastapi.responses import PlainTextResponse
 import config
 from core.utils import JSONResponse, StringIntEncoder
 from core.image import *
-from core.db import init_db
 
 router = APIRouter(
     prefix="/image",
@@ -16,7 +15,6 @@ router = APIRouter(
 
 s3 = boto3.client("s3", endpoint_url=config.R2_ENDPOINT_URL, aws_access_key_id=config.R2_ACCESS_KEY_ID,
                   aws_secret_access_key=config.R2_SECRET_ACCESS_KEY)
-db = init_db()
 art = GenerateArt(
     (s3, config.R2_BUCKET, config.R2_HOST),
     (config.OPENAI_KEY, config.DREAM_KEY, (config.COMPUTER_VISION_KEYS, config.COMPUTER_VISION_REGION))
