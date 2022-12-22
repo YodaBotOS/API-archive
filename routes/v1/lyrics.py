@@ -105,7 +105,10 @@ async def search(q: str):
     db_d['raw_dict'] = res.raw_dict
     db_d['q'] = q
 
-    await lyrics.save(db_d)
+    try:
+        await lyrics.save(db_d)
+    except:
+        pass
 
     return JSONResponse(d)
 
