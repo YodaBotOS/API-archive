@@ -71,7 +71,8 @@ def add_routes(app: App):
 
 
 def init_database(app: App):
-    app.db = init_db(sync=True)
+    # app.db = init_db(sync=True)
+    pass
 
 
 def callback(app: App):
