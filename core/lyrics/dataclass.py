@@ -21,5 +21,8 @@ class Lyric:
             except:
                 pass
 
+        self.images['track'] = self.images.get('track') or None
+        self.images['background'] = self.images.get('background') or None
+
     def __str__(self):
         return self.lyrics
