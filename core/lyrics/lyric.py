@@ -5,6 +5,7 @@ from .baseclass import Tokens
 from shazamio import Shazam
 from core.spotify_api import Client as SpotifyClient
 from urllib.parse import quote_plus
+from core.db import Database
 
 parse_text_for_url = quote_plus
 
@@ -44,7 +45,7 @@ class Lyrics:
         self.cache = {}
 
         self.redis = redis
-        self.psql: asyncpg.Pool = psql
+        self.psql: Database = psql
 
     async def log(self, msg, *, quiet=True):
         print(msg)
@@ -272,10 +273,10 @@ class Lyrics:
         # if x:
         #     return json.loads(x.decode())
 
-        async with self.psql.acquire() as conn:
-            d = await conn.fetchrow('SELECT * FROM lyrics WHERE q = $1', query.lower())
-            d = dict(d)
-            d = self.parse_psql_data(d)
+        d = await self.psql.query('SELECT * FROM lyrics WHERE q = $1', query.lower())
+        d = d.results[0].result
+        d = dict(d)
+        d = self.parse_psql_data(d)
 
         return d
 
@@ -425,22 +426,19 @@ class Lyrics:
             if d['type'] == 'ARTIST':
                 return d
 
-    async def set_json_codec(self, conn):
-        if getattr(self.set_json_codec, 'done', False):
-            return
-
-        await conn.set_type_codec('json', encoder=json.dumps, decoder=json.loads, schema='pg_catalog')
-
-        self.set_json_codec.done = True
+    # async def set_json_codec(self, conn):
+    #     if getattr(self.set_json_codec, 'done', False):
+    #         return
+    #
+    #     await conn.set_type_codec('json', encoder=json.dumps, decoder=json.loads, schema='pg_catalog')
+    #
+    #     self.set_json_codec.done = True
 
     async def save(self, data):
         self.parse_psql_data(data, reverse=True)
 
-        async with self.psql.acquire() as conn:
-            await self.set_json_codec(conn)
-
-            await conn.execute(
-                'INSERT INTO lyrics (q, title, artist, lyrics, track_img, bg_img, raw_dict) VALUES ($1, $2, $3, $4, $5, $6, $7::json)',
-                data['q'].lower(), data['title'], data['artist'], data['lyrics'], data['images']['track'],
-                data['images']['background'], data['raw_dict']
-            )
+        await self.psql.query(
+            'INSERT INTO lyrics (q, title, artist, lyrics, track_img, bg_img, raw_dict) VALUES ($1, $2, $3, $4, $5, $6, $7::json)',
+            data['q'].lower(), data['title'], data['artist'], data['lyrics'], data['images']['track'],
+            data['images']['background'], data['raw_dict']
+        )

@@ -15,13 +15,14 @@ from redis import asyncio as aioredis  # type: ignore
 
 import config
 from core.genre_classification.src.get_genre import main as get_genre
+from core.db import Database
 
 
 router = APIRouter(
     prefix="/music",
 )
 
-db = None
+db = Database(config.DATABASE_HOST, config.DATABASE_AUTH)
 
 s3 = boto3.client("s3", region_name=config.S3_BUCKET_REGION, aws_access_key_id=config.S3_AWS_ACCESS_KEY_ID,
                   aws_secret_access_key=config.S3_AWS_SECRET_ACCESS_KEY)
@@ -109,8 +110,7 @@ async def predict_genre(mode: Literal["fast", "best"] = "fast", file: UploadFile
 
                 job_id = data['job_id']
 
-                async with db.acquire() as conn:
-                    await conn.execute("INSERT INTO predict_genre (job_id, hash) VALUES ($1, $2)", job_id, hash)
+                await db.query("INSERT INTO predict_genre (job_id, hash) VALUES ($1, $2)", job_id, hash)
 
                 return data
     else:
@@ -121,8 +121,12 @@ async def predict_genre(mode: Literal["fast", "best"] = "fast", file: UploadFile
 
 @router.get('/predict-genre/{job_id}')
 async def get_predict_genre(job_id: str):
-    async with db.acquire() as conn:
-        d = await conn.fetchrow("SELECT * FROM predict_genre WHERE job_id = $1", job_id)
+    d = await db.query("SELECT * FROM predict_genre WHERE job_id = $1", job_id)
+    d = d.results[0].result
+
+    d['expires'] = datetime.datetime.utcfromtimestamp(
+        d['expires'] or datetime.datetime.now() + datetime.timedelta(days=1)
+    )
 
     if not d['hash'] or datetime.datetime.utcnow() > d['expires']:
         return JSONResponse({"error": {"code": 404}, "message": "Job ID not found, or has already expired "
@@ -153,10 +157,9 @@ async def get_predict_genre(job_id: str):
             status = data["status"]
 
             if status in ["success", "failed", "cancelled"]:
-                expire = datetime.datetime.utcnow() + datetime.timedelta(minutes=3)
+                expire = (datetime.datetime.utcnow() + datetime.timedelta(minutes=3)).timestamp()
 
-                async with db.acquire() as conn:
-                    await conn.execute("UPDATE predict_genre SET expire = $2 WHERE job_id = $1", expire, job_id)
+                await db.query("UPDATE predict_genre SET expire = $2 WHERE job_id = $1", expire, job_id)
 
             if status == "Success":
                 d = {
@@ -193,6 +196,4 @@ async def get_predict_genre(job_id: str):
 
 
 def init_router(app):
-    global db
-    db = app.db
     return router

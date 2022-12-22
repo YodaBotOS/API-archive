@@ -3,6 +3,8 @@ import json
 
 import openai
 
+from core.db import Database
+
 
 class Chat:
     PROMPT = [
@@ -16,7 +18,7 @@ class Chat:
 
     def __init__(self, openai_token, db):
         self.openai_token = openai_token
-        self.db = db
+        self.db: Database = db
 
         self.prompt = self.PROMPT
 
@@ -38,13 +40,15 @@ class Chat:
         return p
 
     async def get(self, job_id, default=None):
-        async with self.db.acquire() as conn:
-            js = await conn.fetch("SELECT * FROM chat WHERE job_id = $1", job_id)
+        q = await self.db.query("SELECT * FROM chat WHERE job_id = $1", job_id)
+        js = q.results[0].result
+
+        js["expire"] = datetime.datetime.utcfromtimestamp(js['expire'])
 
         if not js:
             return default
 
-        if js['expire'] < datetime.datetime.utcnow():
+        if js["expire"] < datetime.datetime.utcnow():
             await self.delete(job_id)
             return default
 
@@ -61,17 +65,16 @@ class Chat:
 
         item = await self.get(job_id)
 
-        js['expire'] = datetime.datetime.utcnow() + datetime.timedelta(seconds=ex)
+        js['expire'] = (datetime.datetime.utcnow() + datetime.timedelta(seconds=ex)).timestamp()
 
         # I hate doing it like this, but who cares tbh. idc.
-        async with self.db.acquire() as conn:
-            if not item:
-                keys = ', '.join(js.keys())
-                values = ', '.join([f'${i + 1}' for i in range(len(js))])
-                await conn.execute(f"INSERT INTO chat({keys}) VALUES ({values})", *js.values())
-            else:
-                keys = ', '.join([f'{k} = ${i}' for i, k in enumerate(js.keys(), start=2)])
-                await conn.execute(f"UPDATE chat SET {keys} WHERE job_id = $1", job_id, *js.values())
+        if not item:
+            keys = ', '.join(js.keys())
+            values = ', '.join([f'${i + 1}' for i in range(len(js))])
+            await self.db.query(f"INSERT INTO chat({keys}) VALUES ({values})", *js.values())
+        else:
+            keys = ', '.join([f'{k} = ${i}' for i, k in enumerate(js.keys(), start=2)])
+            await self.db.query(f"UPDATE chat SET {keys} WHERE job_id = $1", job_id, *js.values())
 
         return js
 
@@ -79,8 +82,7 @@ class Chat:
         if not await self.job_id_present(job_id):
             raise ValueError("Job ID does not exist, stopped or has expired (3 minutes passed).")
 
-        async with self.db.acquire() as conn:
-            await conn.execute("DELETE FROM chat WHERE job_id = $1", job_id)
+        await self.db.query("DELETE FROM chat WHERE job_id = $1", job_id)
 
     async def job_id_present(self, job_id):
         res = await self.get(job_id)

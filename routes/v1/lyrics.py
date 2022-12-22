@@ -12,14 +12,15 @@ from fastapi.responses import *
 import config
 
 from core.lyrics import Lyrics, Tokens
+from core.db import Database
 
 router = APIRouter(
     prefix="/lyrics",
 )
 
-db = None
+db = Database(config.DATABASE_HOST, config.DATABASE_AUTH)
 tokens = Tokens(**config.LYRIC_TOKENS)
-lyrics = Lyrics(tokens)
+lyrics = Lyrics(tokens, db)
 
 
 s3 = boto3.client("s3", endpoint_url=config.R2_ENDPOINT_URL, aws_access_key_id=config.R2_ACCESS_KEY_ID,
@@ -110,7 +111,4 @@ async def search(q: str):
 
 
 def init_router(app):
-    global db
-    db = app.db
-    lyrics.psql = db
     return router
