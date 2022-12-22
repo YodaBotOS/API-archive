@@ -42,7 +42,8 @@ def on_startup(app: App):
 
 def on_shutdown(app: App):
     async def _():
-        await app.db.close()
+        # await app.db.close()
+        pass
 
     return _
 
