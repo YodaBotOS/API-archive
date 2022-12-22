@@ -10,7 +10,7 @@ import config
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = config.GOOGLE_CREDENTIALS_PATH
 
-from .db import init_db
+# from .db import init_db
 from routes import v1, v2, v3
 
 
