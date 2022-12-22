@@ -41,7 +41,7 @@ class Chat:
 
     async def get(self, job_id, default=None):
         q = await self.db.query("SELECT * FROM chat WHERE job_id = $1", job_id)
-        js = q.results[0].result
+        js = q.results[0].result[0]
 
         js["expire"] = datetime.datetime.utcfromtimestamp(js['expire'])
 

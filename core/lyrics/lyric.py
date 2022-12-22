@@ -274,7 +274,7 @@ class Lyrics:
         #     return json.loads(x.decode())
 
         d = await self.psql.query('SELECT * FROM lyrics WHERE q = $1', query.lower())
-        d = d.results[0].result
+        d = d.results[0].result[0]
         d = dict(d)
 
         if not d:

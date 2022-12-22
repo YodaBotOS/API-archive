@@ -122,7 +122,7 @@ async def predict_genre(mode: Literal["fast", "best"] = "fast", file: UploadFile
 @router.get('/predict-genre/{job_id}')
 async def get_predict_genre(job_id: str):
     d = await db.query("SELECT * FROM predict_genre WHERE job_id = $1", job_id)
-    d = d.results[0].result
+    d = d.results[0].result[0]
 
     d['expires'] = datetime.datetime.utcfromtimestamp(
         d['expires'] or datetime.datetime.now() + datetime.timedelta(days=1)
