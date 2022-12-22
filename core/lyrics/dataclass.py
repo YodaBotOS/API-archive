@@ -1,11 +1,17 @@
 class Lyric:
-    def __init__(self, title, artist, lyrics, raw_dict, images, images_saved_before):
+    def __init__(self, q, title, artist, lyrics, raw_dict, track_img, bg_img, images_saved_before):
         self.lyrics = self.lyric = lyrics
         self.raw = self.raw_dict = self.dict = raw_dict
         self.title = title
         self.artist = self.by = artist
         self._images_saved_before = images_saved_before
-        self.images = images or {}
+        self.images = {}
+
+        if track_img:
+            self.images['track'] = track_img
+
+        if bg_img:
+            self.images['background'] = bg_img
 
         if not images_saved_before or not images:
             try:
