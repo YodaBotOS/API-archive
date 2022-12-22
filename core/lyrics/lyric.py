@@ -276,6 +276,10 @@ class Lyrics:
         d = await self.psql.query('SELECT * FROM lyrics WHERE q = $1', query.lower())
         d = d.results[0].result
         d = dict(d)
+
+        if not d:
+            return dict()
+
         d = self.parse_psql_data(d)
 
         return d
