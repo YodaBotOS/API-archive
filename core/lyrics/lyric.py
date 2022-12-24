@@ -401,7 +401,7 @@ class Lyrics:
                             mx = await self._get_async_scrapping_musixmatch(query)  # type: ignore
 
                             if mx:
-                                lyrics, title, artist = query
+                                lyrics, title, artist = mx
 
                                 await self.log(
                                     "*Sync* Musixmatch works with query %s. Using *sync* musixmatch with result:\n- Title: %s\n- Artist: %s" % (
@@ -420,7 +420,7 @@ class Lyrics:
         else:
             d = {}
 
-        cls = Lyric(title, artist, lyrics, js, d, False)
+        cls = Lyric(query, title, artist, lyrics, js, d, False)
 
         str_data = json.dumps({'title': title, 'artist': artist, 'lyrics': lyrics, 'raw_dict': js})
 
