@@ -67,24 +67,25 @@ async def search(q: str):
         images = {}
 
         for image_name, url in res.images.items():
-            async with aiohttp.ClientSession() as sess:
-                async with sess.get(url) as resp:
-                    image_content = await resp.read()
+            if url and image_name:
+                async with aiohttp.ClientSession() as sess:
+                    async with sess.get(url) as resp:
+                        image_content = await resp.read()
 
-            with open(f'./lyric-images/{res_title}-{res_artist}/{image_name}.jpg', 'wb') as f:
-                f.write(image_content)
+                with open(f'./lyric-images/{res_title}-{res_artist}/{image_name}.jpg', 'wb') as f:
+                    f.write(image_content)
 
-            s3.upload_file(
-                f'./lyric-images/{res_title}-{res_artist}/{image_name}.jpg',
-                config.R2_BUCKET,
-                f'lyrics/{res_title}-{res_artist}/{image_name}.jpg'
-            )
+                s3.upload_file(
+                    f'./lyric-images/{res_title}-{res_artist}/{image_name}.jpg',
+                    config.R2_BUCKET,
+                    f'lyrics/{res_title}-{res_artist}/{image_name}.jpg'
+                )
 
-            x = safe_text_url(res_title + '-' + res_artist)
+                x = safe_text_url(res_title + '-' + res_artist)
 
-            images[image_name] = f'{x}/{image_name}.jpg'
+                images[image_name] = f'{x}/{image_name}.jpg'
 
-            os.remove(f'./lyric-images/{res_title}-{res_artist}/{image_name}.jpg')
+                os.remove(f'./lyric-images/{res_title}-{res_artist}/{image_name}.jpg')
 
         try:
             os.remove(f'./lyric-images/{res_title}-{res_artist}')
