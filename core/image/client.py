@@ -109,10 +109,10 @@ class GenerateArt:
         self.s3.upload_fileobj(
             image,
             Bucket=self.bucket,
-            Key=f"art/caption/{img_id}.png"
+            Key=f"art/analyze/{img_id}.png"
         )
 
-        url = f'https://{self.host}/art/caption/{img_id}.png'
+        url = f'https://{self.host}/art/analyze/{img_id}.png'
 
         async with aiohttp.ClientSession() as sess:
             async with sess.post(
