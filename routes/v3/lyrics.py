@@ -59,8 +59,8 @@ async def search(q: str):
     if not res.title:
         return JSONResponse({'title': None, 'artist': None, 'lyrics': None, 'images': {}}, status_code=404)
 
-    res_title = res.title.replace(" ", "_")
-    res_artist = (res.artist or "unknown").replace(" ", "_")
+    res_title = res.title.replace(" ", "_").replace("/", "")
+    res_artist = (res.artist or "unknown").replace(" ", "_").replace("/", "")
 
     if res._images_saved_before and res.images:
         images = res.images
