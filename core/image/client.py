@@ -117,7 +117,7 @@ class GenerateArt:
         async with aiohttp.ClientSession() as sess:
             async with sess.post(
                 f"https://{self.computer_vision_region}.api.cognitive.microsoft.com/vision/v3.2/analyze",
-                body=json.dumps({"url": url}),
+                data=json.dumps({"url": url}),
                 headers={
                     "Ocp-Apim-Subscription-Key": key,
                     "Content-Type": "application/json"
