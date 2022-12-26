@@ -112,7 +112,7 @@ class GenerateArt:
             Key=f"art/caption/{img_id}.png"
         )
 
-        url = f'{self.host}/art/caption/{img_id}.png'
+        url = f'https://{self.host}/art/caption/{img_id}.png'
 
         async with aiohttp.ClientSession() as sess:
             async with sess.post(
