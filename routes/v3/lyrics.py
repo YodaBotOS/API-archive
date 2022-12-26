@@ -56,39 +56,45 @@ async def search(q: str):
     if not res:
         return JSONResponse({'title': None, 'artist': None, 'lyrics': None, 'images': {}}, status_code=404)
 
+    if not res.title:
+        return JSONResponse({'title': None, 'artist': None, 'lyrics': None, 'images': {}}, status_code=404)
+
     res_title = res.title.replace(" ", "_")
-    res_artist = res.artist.replace(" ", "_")
+    res_artist = (res.artist or "unknown").replace(" ", "_")
 
     if res._images_saved_before and res.images:
         images = res.images
     else:
-        if not os.path.exists(f'./lyric-images/{res_title}-{res_artist}'):
-            os.mkdir(f'./lyric-images/{res_title}-{res_artist}')
-
         images = {}
 
-        for image_name, url in res.images.items():
-            if url and image_name:
-                async with aiohttp.ClientSession() as sess:
-                    async with sess.get(url) as resp:
-                        image_content = await resp.read()
-
-                with open(f'./lyric-images/{res_title}-{res_artist}/{image_name}.jpg', 'wb') as f:
-                    f.write(image_content)
-
-                s3.upload_file(
-                    f'./lyric-images/{res_title}-{res_artist}/{image_name}.jpg',
-                    config.R2_BUCKET,
-                    f'lyrics/{res_title}-{res_artist}/{image_name}.jpg'
-                )
-
-                x = safe_text_url(res_title + '-' + res_artist)
-
-                images[image_name] = f'{x}/{image_name}.jpg'
-
-                os.remove(f'./lyric-images/{res_title}-{res_artist}/{image_name}.jpg')
-
         try:
+            if not os.path.exists(f'./lyric-images/{res_title}-{res_artist}'):
+                os.mkdir(f'./lyric-images/{res_title}-{res_artist}')
+
+            for image_name, url in res.images.items():
+                try:
+                    if url and image_name:
+                        async with aiohttp.ClientSession() as sess:
+                            async with sess.get(url) as resp:
+                                image_content = await resp.read()
+
+                        with open(f'./lyric-images/{res_title}-{res_artist}/{image_name}.jpg', 'wb') as f:
+                            f.write(image_content)
+
+                        s3.upload_file(
+                            f'./lyric-images/{res_title}-{res_artist}/{image_name}.jpg',
+                            config.R2_BUCKET,
+                            f'lyrics/{res_title}-{res_artist}/{image_name}.jpg'
+                        )
+
+                        x = safe_text_url(res_title + '-' + res_artist)
+
+                        images[image_name] = f'{x}/{image_name}.jpg'
+
+                        os.remove(f'./lyric-images/{res_title}-{res_artist}/{image_name}.jpg')
+                except:
+                    continue
+
             os.remove(f'./lyric-images/{res_title}-{res_artist}')
         except:
             pass
