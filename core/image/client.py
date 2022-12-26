@@ -130,6 +130,9 @@ class GenerateArt:
                 }
             ) as resp:
                 js = await resp.json()
+                
+                if resp.status == 400:
+                    return {"error": {"code": 400, "message": js["error"]["message"]}}
 
                 data = {
                     "adult": {

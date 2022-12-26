@@ -6,6 +6,7 @@ from fastapi.openapi.utils import get_openapi
 from fastapi.staticfiles import StaticFiles
 
 from core.app import callback, on_startup, on_shutdown, setup_sentry
+from core.utils import JSONResponse as NewJSONResponse
 
 setup_sentry()
 
@@ -45,6 +46,14 @@ def custom_openapi():
 
 
 app.openapi = custom_openapi
+
+
+@app.exception_handler(Exception)
+async def exception_handler_500(request: fastapi.Request, exc):
+    if request.url.path.strip("/v/").startswith("1"):
+        return JSONResponse({"error": {"code": 500, "message": "Internal Server Error"}}, status_code=500)
+    else:
+        return NewJSONResponse({"error": {"code": 500, "message": "Internal Server Error"}}, status_code=500)
 
 
 @app.get("/docs", include_in_schema=False)
