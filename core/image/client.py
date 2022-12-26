@@ -115,7 +115,7 @@ class GenerateArt:
         url = f'{self.host}/art/caption/{img_id}.png'
 
         async with aiohttp.ClientSession() as sess:
-            async with sess.get(
+            async with sess.post(
                 f"https://{self.computer_vision_region}.api.cognitive.microsoft.com/vision/v3.2/analyze",
                 body=json.dumps({"url": url}),
                 headers={
