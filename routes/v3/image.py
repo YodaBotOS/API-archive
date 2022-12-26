@@ -85,7 +85,7 @@ async def generate_image(request: Request):
 
 
 @router.post("/generate/variations", response_class=JSONResponse)
-async def generate_image_variations(request: Request, file: UploadFile = File()):
+async def generate_image_variations(request: Request, image: UploadFile = File()):
     js = await request.json()
 
     n = js.get("amount", 3)
@@ -100,10 +100,10 @@ async def generate_image_variations(request: Request, file: UploadFile = File())
     img_file_err = JSONResponse({"error": {"code": 400}, "message": "Missing/invalid image file in request."},
                                 status_code=400)
 
-    if not file:
+    if not image:
         return img_file_err
 
-    image_file = await file.read()
+    image_file = await image.read()
 
     if not image_file:
         return img_file_err
@@ -217,14 +217,14 @@ async def get_available_styles():
 
 
 @router.post("/analyze", response_class=JSONResponse)
-async def analyze_image(file: UploadFile = File()):
+async def analyze_image(image: UploadFile = File()):
     img_file_err = JSONResponse({"error": {"code": 400}, "message": "Missing/invalid image file in request."},
                                 status_code=400)
 
-    if not file:
+    if not image:
         return img_file_err
 
-    image_file = await file.read()
+    image_file = await image.read()
 
     if not image_file:
         return img_file_err
