@@ -475,7 +475,7 @@ class Lyrics:
         if n < 1 or n > 20:
             raise ValueError('n must be between 1 and 20.')
         
-        res = await self.spotify.search(query, types='track', limit=n)
+        res = await self.spotify.search.search(query, types='track', limit=n)
         tracks = res.tracks.items
 
         js = [{"title": x["name"], "artists": [artist["name"] for artist in x["artists"]]} for x in tracks]
