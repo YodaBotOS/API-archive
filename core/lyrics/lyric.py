@@ -475,10 +475,20 @@ class Lyrics:
         if n < 1 or n > 20:
             raise ValueError('n must be between 1 and 20.')
         
-        res = await self.spotify.search.search(query, types='track', limit=n)
+        res = await self.spotify.search.search(query, types='track', limit=50)
         tracks = res.tracks.items
 
         js = [{"title": x["name"], "artists": [artist["name"] for artist in x["artists"]]} for x in tracks]
+        
+        x = list(reversed(js))
+        
+        for i, item in enumerate(x):
+            if x.count(item) > 1:
+                x.pop(i)
+        
+        js = list(reversed(x))
+                
+        js = js[:n]
         
         self.loop.create_task(self._start_suggest_task(js))
 
