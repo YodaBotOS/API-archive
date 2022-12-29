@@ -97,7 +97,7 @@ async def search(q: str):
 
     for name, endpoint in images.items():
         url = f'https://{cdn_url}/{endpoint}'
-        url.replace(f'https://{cdn_url}/https://{cdn_url}/', f'https://{cdn_url}/')  # idk why this happens
+        url = url.replace(f'https://{cdn_url}/https://{cdn_url}/', f'https://{cdn_url}/')  # idk why this happens
         i[name] = url
 
     title = res.title
