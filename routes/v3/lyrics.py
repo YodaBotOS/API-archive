@@ -35,6 +35,16 @@ for i in ['lyric-images', 'shazam-lyrics']:
         continue
 
 
+def query_check(q):
+    q = q.replace('+', ' ').strip()
+
+    regex_res = re.findall(r'\(.*\)', q)
+    for i in regex_res:
+        q = q.replace(i, '')
+
+    return q
+
+
 @router.get("/", include_in_schema=False)
 async def root():
     return PlainTextResponse("Hello World! Version v3 lyrics")
@@ -42,11 +52,7 @@ async def root():
 
 @router.get("/search")
 async def search(q: str):
-    q = q.replace('+', ' ').strip()
-
-    regex_res = re.findall(r'\(.*\)', q)
-    for i in regex_res:
-        q = q.replace(i, '')
+    q = query_check(q)
 
     if not q:
         return JSONResponse({'error': {'code': 400}, 'message': 'No query provided.'}, status_code=400)
@@ -119,6 +125,21 @@ async def search(q: str):
         pass
 
     return JSONResponse(d)
+
+
+@router.get("/suggest")
+async def suggest_tracks(q: str, amount: int = 10):
+    q = query_check(q)
+
+    if not q:
+        return JSONResponse({'error': {'code': 400}, 'message': 'No query provided.'}, status_code=400)
+
+    if amount < 1 or amount > 20:
+        return JSONResponse({'error': {'code': 400}, 'message': 'amount must be between 1 and 20.'}, status_code=400)
+
+    res = await lyrics.suggest(q, amount)
+
+    return JSONResponse(res)
 
 
 def init_router(app):

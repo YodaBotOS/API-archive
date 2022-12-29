@@ -24,16 +24,16 @@ class Lyrics:
         self.loop = loop or asyncio.get_event_loop()
 
         self.tokens = tokens
+        
+        self.genius: Genius = None
 
         if hasattr(tokens, 'genius'):
             self.genius: Genius = Genius(tokens.genius, verbose=False)
-        else:
-            self.genius = None
+
+        self.spotify: SpotifyClient = None
 
         if hasattr(tokens, 'spotify'):
-            self.spotify = SpotifyClient(tokens.spotify['id'], tokens.spotify['secret'])
-        else:
-            self.spotify = None
+            self.spotify: SpotifyClient = SpotifyClient(tokens.spotify['id'], tokens.spotify['secret'])
 
         # if hasattr(tokens, 'musixmatch'):
         # self.musixmatch = Musixmatch(tokens.musixmatch)
@@ -331,6 +331,11 @@ class Lyrics:
                 js = await resp.json()
                 return js['name'], ', '.join([x['name'] for x in js['artists']]), js['lyrics']
 
+    def _get_musixmatch_artist(self, track) -> typing.Optional[dict]:
+        for d in track['sections']:
+            if d['type'] == 'ARTIST':
+                return d
+
     async def get(self, query: str, *, cache=True):
         query = str(query)
 
@@ -431,18 +436,53 @@ class Lyrics:
 
         return cls
 
-    def _get_musixmatch_artist(self, track) -> typing.Optional[dict]:
-        for d in track['sections']:
-            if d['type'] == 'ARTIST':
-                return d
+    async def _start_suggest_task(self, data):
+        def split(lst, max_size):
+            master = []
+            l = []
+            n = 0
+            for i in lst:
+                l.append(i)
+                n += 1
+                if n == max_size:
+                    master.append(l)
+                    l = []
+                    n = 0
+                    
+            if l:
+                master.append(l)
 
-    # async def set_json_codec(self, conn):
-    #     if getattr(self.set_json_codec, 'done', False):
-    #         return
-    #
-    #     await conn.set_type_codec('json', encoder=json.dumps, decoder=json.loads, schema='pg_catalog')
-    #
-    #     self.set_json_codec.done = True
+            return master
+        
+        async def perf_req(key):
+            async with aiohttp.ClientSession() as sess:
+                async with sess.get(f'https://api.yodabot.xyz/api/lyrics/search', params={'q': key}) as resp:
+                    return resp.status
+                
+        keys = []
+
+        for i in data:
+            keys.extend([i['title'], f"{i['title']} - {', '.join(i['artists'])}",
+                         f"{i['title']} {', '.join(i['artists'])}"])
+        
+        s_data = split(keys, 6)
+        
+        for i in s_data:
+            await asyncio.gather(*[perf_req(x) for x in i])
+            await asyncio.sleep(.25)
+
+    async def suggest(self, query: str, n: int):
+        if n < 1 or n > 20:
+            raise ValueError('n must be between 1 and 20.')
+        
+        res = await self.spotify.search(query, types='track', limit=n)
+        tracks = res.tracks.items
+
+        js = [{"title": x["name"], "artists": [artist["name"] for artist in x["artists"]]} for x in tracks]
+        
+        self.loop.create_task(self._start_suggest_task(js))
+
+        return js
 
     async def save(self, data):
         self.parse_psql_data(data, reverse=True)
