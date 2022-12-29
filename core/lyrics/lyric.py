@@ -488,7 +488,7 @@ class Lyrics:
         self.parse_psql_data(data, reverse=True)
 
         await self.psql.query(
-            'INSERT INTO lyrics (q, title, artist, lyrics, track_img, bg_img, raw_dict) VALUES ($1, $2, $3, $4, $5, $6, $7::json)',
+            'INSERT INTO lyrics (q, title, artist, lyrics, track_img, bg_img, raw_dict) VALUES ($1, $2, $3, $4, $5, $6, $7)',
             data['q'].lower(), data['title'], data['artist'], data['lyrics'], data['images']['track'],
-            data['images']['background'], data['raw_dict']
+            data['images']['background'], json.dumps(data['raw_dict'])
         )
