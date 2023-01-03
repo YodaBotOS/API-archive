@@ -2,9 +2,12 @@ import io
 import uuid
 import json
 import random
+import asyncio
+import functools
 
 import openai
 import aiohttp
+from PIL import Image as PILImage
 
 from .enums import *
 from .image import *
@@ -96,6 +99,14 @@ class GenerateArt:
 
         return gen
 
+    def _convert_img(self, image):
+        img = PILImage.open(image)
+        new_img = io.BytesIO()
+        img.save(new_img, format="PNG")
+
+        new_img.seek(0)
+        return new_img
+
     async def analyze(self, image: str | bytes | io.BytesIO) -> dict:
         key = random.choice(self.computer_vision_keys)
 
@@ -103,6 +114,9 @@ class GenerateArt:
             image = io.BytesIO(open(image, "rb").read())
         elif isinstance(image, bytes):
             image = io.BytesIO(image)
+
+        args = functools.partial(self._convert_img, image)
+        image = await asyncio.get_event_loop().run_in_executor(None, args)
 
         img_id = uuid.uuid4()
 

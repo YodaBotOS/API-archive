@@ -53,7 +53,7 @@ async def root():
 
 @router.get("/languages")
 async def languages():
-    langs = translate.get_languages()
+    langs = await translate.get_languages()
 
     d = {"supportedLanguages": langs}
 
@@ -134,7 +134,7 @@ async def translate_image_render(lang: str, image: UploadFile = File()):
 
 @router.get("/translate/image/languages")
 async def translate_image_languages():
-    langs = translate.get_languages()
+    langs = await translate.get_languages()
 
     d = {"supportedLanguages": langs}
 
