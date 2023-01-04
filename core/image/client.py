@@ -172,9 +172,10 @@ class GenerateArt:
                             "unknown"
                         )
                     },
-                    "brands": js["brands"],
-                    "objects": [{"rectangle": o["rectangle"], "object": o["object"],
-                                 "confidence": o["confidence"] * 100} for o in js["objects"]],
+                    "brands": [{"name": o["name"], "confidence": o["confidence"] * 100, 
+                                "rectangle": o["rectangle"]} for o in js["brands"]],
+                    "objects": [{"object": o["object"], "confidence": o["confidence"] * 100, 
+                                 "rectangle": o["rectangle"]} for o in js["objects"]],
                     "metadata": {
                         "width": js["metadata"]["width"],
                         "height": js["metadata"]["height"]
