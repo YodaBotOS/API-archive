@@ -177,8 +177,7 @@ class GenerateArt:
                                  "confidence": o["confidence"] * 100} for o in js["objects"]],
                     "metadata": {
                         "width": js["metadata"]["width"],
-                        "height": js["metadata"]["height"],
-                        "format": js["metadata"]["format"].lower()
+                        "height": js["metadata"]["height"]
                     }
                 }
 
