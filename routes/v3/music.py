@@ -82,10 +82,10 @@ async def predict_genre(mode: Literal["fast", "best"] = "fast", file: UploadFile
         async with aiohttp.ClientSession() as sess:
             token = await get_dolby_io_token(sess)
 
-            s3.upload_file(f"tmp/{hash}.mp3", config.S3_BUCKET, f"v1/music/predict-genre/in/{hash}.mp3")
+            s3.upload_file(f"tmp/{hash}.mp3", config.R2_BUCKET, f"predict-genre/input/{hash}.mp3")
             
-            input_url = presign.create_presigned_url(config.S3_BUCKET, f"v1/music/predict-genre/in/{hash}.mp3")
-            output_url = presign.create_presigned_url(config.S3_BUCKET, f"v1/music/predict-genre/out/{hash}.json", operation='put_object', expiration=7200)
+            input_url = presign.create_presigned_url(config.R2_BUCKET, f"predict-genre/input/{hash}.mp3")
+            output_url = presign.create_presigned_url(config.R2_BUCKET, f"predict-genre/output/{hash}.json", operation='put_object', expiration=7200)
 
             os.remove(f"tmp/{hash}.mp3")
 
@@ -153,7 +153,7 @@ async def get_predict_genre(job_id: str):
 
             status = data["status"]
 
-            if status in ["success", "failed", "cancelled"]:
+            if status.lower() in ["success", "failed", "cancelled"]:
                 expire = (datetime.datetime.utcnow() + datetime.timedelta(minutes=3)).timestamp()
 
                 await db.query("UPDATE predict_genre SET expire = $2 WHERE job_id = $1", expire, job_id)
@@ -164,7 +164,7 @@ async def get_predict_genre(job_id: str):
                     "progress": 100,
                 }
 
-                obj = s3.get_object(Bucket=config.S3_BUCKET, Key=f"v1/music/predict-genre/out/{hash}.json")
+                obj = s3.get_object(Bucket=config.R2_BUCKET, Key=f"predict-genre/output/{hash}.json")
 
                 obj_body = obj["Body"].read().decode("utf-8")
 
@@ -182,7 +182,7 @@ async def get_predict_genre(job_id: str):
                 return JSONResponse(d)
             else:
                 d = {
-                    "status": data["status"].lower(),
+                    "status": status.lower(),
                     "result": {},
                 }
 
