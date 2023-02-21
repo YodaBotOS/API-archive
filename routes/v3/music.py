@@ -24,8 +24,8 @@ router = APIRouter(
 
 db = Database(config.DATABASE_HOST, config.DATABASE_AUTH)
 
-s3 = boto3.client("s3", region_name=config.S3_BUCKET_REGION, aws_access_key_id=config.S3_AWS_ACCESS_KEY_ID,
-                  aws_secret_access_key=config.S3_AWS_SECRET_ACCESS_KEY)
+s3 = boto3.client("s3", region_name=config.S3_BUCKET_REGION, aws_access_key_id=config.R2_ACCESS_KEY_ID,
+                  aws_secret_access_key=config.R2_SECRET_ACCESS_KEY)
 
 
 async def get_dolby_io_token(sess):
