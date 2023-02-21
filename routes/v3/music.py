@@ -84,8 +84,8 @@ async def predict_genre(mode: Literal["fast", "best"] = "fast", file: UploadFile
 
             s3.upload_file(f"tmp/{hash}.mp3", config.R2_BUCKET, f"predict-genre/input/{hash}.mp3")
             
-            input_url = presign.create_presigned_url(config.R2_BUCKET, f"predict-genre/input/{hash}.mp3")
-            output_url = presign.create_presigned_url(config.R2_BUCKET, f"predict-genre/output/{hash}.json", operation='put_object', expiration=7200)
+            input_url = create_presigned_url(config.R2_BUCKET, f"predict-genre/input/{hash}.mp3")
+            output_url = create_presigned_url(config.R2_BUCKET, f"predict-genre/output/{hash}.json", operation='put_object', expiration=7200)
 
             os.remove(f"tmp/{hash}.mp3")
 
