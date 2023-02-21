@@ -153,7 +153,7 @@ async def get_predict_genre(job_id: str):
             status = data["status"]
 
             if status.lower() in ["success", "failed", "cancelled"] and not ex_ori:
-                expire = (datetime.datetime.utcnow() + datetime.timedelta(minutes=3)).timestamp()
+                expire = int((datetime.datetime.utcnow() + datetime.timedelta(minutes=3)).timestamp()) 
 
                 await db.query("UPDATE predict_genre SET expire = $2 WHERE job_id = $1", expire, job_id)
 
