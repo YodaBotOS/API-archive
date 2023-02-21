@@ -49,6 +49,12 @@ async def get_dolby_io_token(sess):
 
     return token
 
+def create_presigned_url(bucket_name, object_name, operation='get_object', expiration=3600):
+    return s3.generate_presigned_url(operation,
+        Params={'Bucket': bucket_name, 'Key': object_name},
+        ExpiresIn=expiration
+    )
+
 
 @router.get("/", include_in_schema=False)
 async def root():
@@ -77,26 +83,17 @@ async def predict_genre(mode: Literal["fast", "best"] = "fast", file: UploadFile
             token = await get_dolby_io_token(sess)
 
             s3.upload_file(f"tmp/{hash}.mp3", config.S3_BUCKET, f"v1/music/predict-genre/in/{hash}.mp3")
+            
+            input_url = presign.create_presigned_url(config.S3_BUCKET, f"v1/music/predict-genre/in/{hash}.mp3")
+            output_url = presign.create_presigned_url(config.S3_BUCKET, f"v1/music/predict-genre/out/{hash}.json", operation='put_object', expiration=7200)
 
             os.remove(f"tmp/{hash}.mp3")
 
             url = "https://api.dolby.com/media/analyze"
 
             payload = {
-                "output": {
-                    "auth": {
-                        "key": config.S3_AWS_ACCESS_KEY_ID,
-                        "secret": config.S3_AWS_SECRET_ACCESS_KEY,
-                    },
-                    "url": f"s3://{config.S3_BUCKET}/v1/music/predict-genre/out/{hash}.json",
-                },
-                "input": {
-                    "auth": {
-                        "key": config.S3_AWS_ACCESS_KEY_ID,
-                        "secret": config.S3_AWS_SECRET_ACCESS_KEY,
-                    },
-                    "url": f"s3://{config.S3_BUCKET}/v1/music/predict-genre/in/{hash}.mp3",
-                }
+                "output": output_url,
+                "input": input_url
             }
 
             headers = {
