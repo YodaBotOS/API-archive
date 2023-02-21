@@ -120,10 +120,9 @@ async def predict_genre(mode: Literal["fast", "best"] = "fast", file: UploadFile
 async def get_predict_genre(job_id: str):
     d = await db.query("SELECT * FROM predict_genre WHERE job_id = $1", job_id)
     d = d.results[0].result[0]
-
-    d['expire'] = datetime.datetime.utcfromtimestamp(
-        d['expire'] or datetime.datetime.now() + datetime.timedelta(days=1)
-    )
+    
+    ex_ori = d['expire']
+    d['expire'] = datetime.datetime.utcfromtimestamp(d['expire']) if d['expire'] else datetime.datetime.now() + datetime.timedelta(days=1)
 
     if not d['hash'] or datetime.datetime.utcnow() > d['expire']:
         return JSONResponse({"error": {"code": 404}, "message": "Job ID not found, or has already expired "
@@ -153,7 +152,7 @@ async def get_predict_genre(job_id: str):
 
             status = data["status"]
 
-            if status.lower() in ["success", "failed", "cancelled"]:
+            if status.lower() in ["success", "failed", "cancelled"] and not ex_ori:
                 expire = (datetime.datetime.utcnow() + datetime.timedelta(minutes=3)).timestamp()
 
                 await db.query("UPDATE predict_genre SET expire = $2 WHERE job_id = $1", expire, job_id)
