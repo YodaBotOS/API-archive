@@ -39,8 +39,8 @@ class TranslateOCR:
         self.parent = f"projects/{project_id}/locations/{self.location}"
 
     async def run(self, image: BytesIO | bytes, lang: str):
-        if isinstance(image, bytes):
-            image = BytesIO(image)
+        if isinstance(image, BytesIO):
+            image = image.getvalue()
 
         image = ImageOps.contain(Image.open(image), (1024, 1024))
 
