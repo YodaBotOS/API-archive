@@ -29,7 +29,7 @@ tar -xf $FILE
 export PATH=$PATH:$HOME/API/google-cloud-sdk/bin
 
 sudo apt-get install nginx -y
-sudo ln -s ./core/setup/nginx.conf /etc/nginx/conf.d/yodaapi.conf
+sudo ln -s $HOME/API/core/setup/nginx.conf /etc/nginx/conf.d/yodaapi.conf
 
 sudo cp ./core/setup/systemd.service /etc/systemd/system/API.service
 sudo systemctl daemon-reload
