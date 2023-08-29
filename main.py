@@ -11,8 +11,8 @@ from core.utils import JSONResponse as NewJSONResponse
 setup_sentry()
 
 app = App(
-    title="Yoda API",
-    description="A public API hosted by YodaBotOS. [Open-Sourced at GitHub](https://github.com/YodaBotOS/API)",
+    title="ARCHIVED - Yoda API",
+    description="ARCHIVED: A public API hosted by YodaBotOS. [Open-Sourced at GitHub](https://github.com/YodaBotOS/API)",
     version="latest-v3",
     redoc_url=None,
     docs_url=None,
