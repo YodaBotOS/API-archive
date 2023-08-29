@@ -1,3 +1,5 @@
+## ⚠ ARCHIVED BRANCH OF YODA API
+
 # [Yoda API](https://api.yodabot.xyz/)
 Welcome to Yoda API. This is the source code for the API.
 
