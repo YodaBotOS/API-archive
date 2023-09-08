@@ -84,7 +84,7 @@ def add_google_analytics(app: App):
     """
     
     @app.middleware("http")
-    async def insert_js(request: Request, call_next):
+    async def insert_js(request, call_next):
         path = request.scope["path"]  # get the request route
         response = await call_next(request)
 
