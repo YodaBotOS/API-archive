@@ -87,26 +87,29 @@ def add_google_analytics(app: App):
     async def insert_js(request, call_next):
         path = request.scope["path"]  # get the request route
         response = await call_next(request)
-
-        response_body = ""
-        async for chunk in response.body_iterator:
-            response_body += chunk.decode()
-
-        charset_tag = '<meta charset="utf-8">'
-        color_scheme_tag = '<meta name="color-scheme" content="light dark">'
-        if charset_tag in response_body:
-            response_body = response_body.replace(charset_tag, charset_tag + ga_script.format(code=config.GOOGLE_ANALYTICS_CODE))
-        elif color_scheme_tag in response_body:
-            response_body = response_body.replace(color_scheme_tag, color_scheme_tag + ga_script.format(code=config.GOOGLE_ANALYTICS_CODE))
-        else:
-            response_body = response_body.replace('<head>', '<head>\n' + ga_script.format(code=config.GOOGLE_ANALYTICS_CODE))
-
-        return Response(
-            content=response_body,
-            status_code=response.status_code,
-            headers=dict(response.headers),
-            media_type=response.media_type,
-        )
+        
+        try:
+            response_body = ""
+            async for chunk in response.body_iterator:
+                response_body += chunk.decode()
+    
+            charset_tag = '<meta charset="utf-8">'
+            color_scheme_tag = '<meta name="color-scheme" content="light dark">'
+            if charset_tag in response_body:
+                response_body = response_body.replace(charset_tag, charset_tag + ga_script.format(code=config.GOOGLE_ANALYTICS_CODE))
+            elif color_scheme_tag in response_body:
+                response_body = response_body.replace(color_scheme_tag, color_scheme_tag + ga_script.format(code=config.GOOGLE_ANALYTICS_CODE))
+            else:
+                response_body = response_body.replace('<head>', '<head>\n' + ga_script.format(code=config.GOOGLE_ANALYTICS_CODE))
+    
+            return Response(
+                content=response_body,
+                status_code=response.status_code,
+                headers=dict(response.headers),
+                media_type=response.media_type,
+            )
+        except:
+            return response
 
 
 def init_database(app: App):
