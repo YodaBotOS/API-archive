@@ -101,6 +101,8 @@ def add_google_analytics(app: App):
                 response_body = response_body.replace(color_scheme_tag, color_scheme_tag + ga_script.format(code=config.GOOGLE_ANALYTICS_CODE))
             else:
                 response_body = response_body.replace('<head>', '<head>\n' + ga_script.format(code=config.GOOGLE_ANALYTICS_CODE))
+
+            del response.headers["content-length"]
     
             return Response(
                 content=response_body,
