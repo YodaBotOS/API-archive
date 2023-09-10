@@ -19,6 +19,7 @@ fastapi-limiter
 redis>=4.2.0rc1
 python-multipart
 thefuzz[speedup]
+fastapi-analytics
 sentry-sdk[fastapi]
 google-cloud-translate
 git+https://github.com/proguy914629bot/ShazamIO
