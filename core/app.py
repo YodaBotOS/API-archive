@@ -102,12 +102,13 @@ def add_google_analytics(app: App):
             else:
                 response_body = response_body.replace('<head>', '<head>\n' + ga_script.format(code=config.GOOGLE_ANALYTICS_CODE))
 
-            del response.headers["content-length"]
+            h = response.headers.mutablecopy()
+            h['content-length'] = len(response_body.encode('utf-8'))
     
             return Response(
                 content=response_body,
                 status_code=response.status_code,
-                headers=dict(response.headers),
+                headers=dict(h),
                 media_type=response.media_type,
             )
         except:
