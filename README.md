@@ -1,4 +1,4 @@
-## ⚠ ARCHIVED BRANCH OF YODA API
+## ⚠ ARCHIVED REPO OF YODA API
 This repository is no longer maintained. Please visit [@YodaBotOS/API](https://github.com/YodaBotOS/API) for the current and up-to-date version of this API.
 
 # Yoda API
