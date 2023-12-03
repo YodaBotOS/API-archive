@@ -1,6 +1,7 @@
 ## ⚠ ARCHIVED BRANCH OF YODA API
+This repository is no longer maintained. Please visit [@YodaBotOS/API](https://github.com/YodaBotOS/API) for the current and up-to-date version of this API.
 
-# [Yoda API](https://api.yodabot.xyz/)
+# Yoda API
 Welcome to Yoda API. This is the source code for the API.
 
 # Hosting
@@ -17,7 +18,7 @@ We will not help you with self-hosting this API.
 Either way, it's already open to the public using our machines, hosted on Cloudflare. You can (should be able to) use it without any problems.
 
 # Issues
-If you find any issues regarding accessing/using the API and others, please report them [here](https://github.com/YodaBotOS/API/issues/new).
+If you find any issues regarding accessing/using the API and others, please report them [here](https://github.com/YodaBotOS/API-archive/issues/new).
 
 # Notes:
 - This API is the continuation of the now archived [OpenRobot](https://github.com/OpenRobot) API. Most of the code is from there and our [current bot](https://github.com/YodaBotOS/YodaBot).
@@ -27,7 +28,7 @@ If you find any issues regarding accessing/using the API and others, please repo
 - More API endpoints will be added soon.
 
 # API Versions:
-- [latest](https://api.yodabot.xyz/v/latest) or [/api](https://api.yodabot.xyz/api) (this automatically updates to the latest version)
-- [v1](https://api.yodabot.xyz/v/1)
-- [v2](https://api.yodabot.xyz/v/2)
-- [v3](https://api.yodabot.xyz/v/3)
+- latest or /api (this automatically updates to the latest version)
+- v1
+- v2
+- v3
